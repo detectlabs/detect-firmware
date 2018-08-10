@@ -2,8 +2,8 @@ PROJECT_NAME     := ble_app_buttonless_dfu_pca10056_s140
 TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../../..
-PROJ_DIR := ../../..
+SDK_ROOT := .
+PROJ_DIR := .
 
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   LINKER_SCRIPT  := ble_app_buttonless_dfu_gcc_nrf52.ld
@@ -95,7 +95,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/bootloader/dfu \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/libraries/util \
-  ../config \
   $(SDK_ROOT)/components/ble/common \
   $(SDK_ROOT)/components/libraries/balloc \
   $(SDK_ROOT)/components/ble/peer_manager \
@@ -128,6 +127,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/ble/ble_services/ble_dfu \
   $(SDK_ROOT)/external/fprintf \
   $(SDK_ROOT)/components/libraries/svc \
+  $(PROJ_DIR) \
 
 # Libraries common to all targets
 LIB_FILES += \
