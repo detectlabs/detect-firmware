@@ -890,7 +890,6 @@ static void idle_state_handle(void)
     }
 }
 
-
 /**@brief Function for application main entry.
  */
 int main(void)

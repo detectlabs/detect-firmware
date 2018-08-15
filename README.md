@@ -5,7 +5,7 @@ This is the source for the detect sensor firmware.
 This repo is huge! Remove all unnecessary code.
 
 ## Compiling
-Using nRF5 SDK V15.0.0 (included in source) found [here](http://linkhttps://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v15.x.x/)
+Using nRF5 SDK V15.0.0 (included in source) found [here](http://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v15.x.x/)
 
 GNU Arm Embedded Toolchain - Version 6-2017-q2-update Linux 64-bit
 [Download tar](https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads)
@@ -25,8 +25,3 @@ Using J-Link Plus found [here](http://linkhttps://www.segger.com/products/debug-
 Using JTAG 20 pin 0.1 inch to 10 pin 0.05 inch adapter found [here](https://www.olimex.com/Products/ARM/JTAG/ARM-JTAG-20-10/)  
 
 Using J-Link Software found [here](http://linkhttps://www.segger.com/downloads/jlink/#J-LinkSoftwareAndDocumentationPack)
-
-## Nordic Semiconductor Docs
-
-[Buttonless DFU Template Application Docs](http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v15.0.0%2Findex.html&cp=4_0_0)
-
