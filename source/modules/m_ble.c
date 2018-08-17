@@ -591,5 +591,5 @@ uint32_t m_ble_init(uint16_t * _m_conn_handle, ble_advertising_t * _m_advertisin
     services_init();
     conn_params_init();
 
-    return 0;
+    return NRF_SUCCESS;
 }

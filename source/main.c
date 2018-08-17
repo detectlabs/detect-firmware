@@ -88,6 +88,7 @@
 
 #include "m_ble.h"
 #include "m_board.h"
+#include "m_fds.h"
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -252,6 +253,10 @@ static void detect_init(void)
 {
     uint32_t err_code;
 
+    /**@brief Initialize FDS module. */
+    err_code = m_fds_init();
+    APP_ERROR_CHECK(err_code);
+
     /**@brief Initialize BLE handling module. */
     err_code = m_ble_init(&m_conn_handle, &m_advertising);
     APP_ERROR_CHECK(err_code);
@@ -271,6 +276,8 @@ int main(void)
     //Init board and timers before ble
     board_init(&m_conn_handle, &m_advertising, &erase_bonds);
     detect_init();
+
+
 
     NRF_LOG_INFO("Buttonless DFU Application started.");
 

@@ -26,6 +26,18 @@ Using JTAG 20 pin 0.1 inch to 10 pin 0.05 inch adapter found [here](https://www.
 
 Using J-Link Software found [here](http://linkhttps://www.segger.com/downloads/jlink/#J-LinkSoftwareAndDocumentationPack)
 
+## RTT Logging
+RTT Logging is enabled and can be read using the cmdline utility JLinkRTTLogger with a J-Link Debugger.  
+cmdline options:  
+```
+Device name. Default: NRF52832_XXAA > NRF52840_XXAA
+Target interface. > SWD
+Interface speed [kHz]. Default: 4000 kHz > 
+RTT Control Block address. Default: auto-detection > 
+RTT Channel name or index. Default: channel 1 > 0
+Output file. Default: RTT_<ChannelName>_<Time>.log > /dev/stdout
+```
+
 ## BLE Services
 
 Detect Configuration Service

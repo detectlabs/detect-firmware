@@ -82,7 +82,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
   $(PROJ_DIR)/modules/m_ble.c \
   $(PROJ_DIR)/modules/m_board.c \
-  
+  $(PROJ_DIR)/modules/m_fds.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
