@@ -2,8 +2,8 @@ PROJECT_NAME     := ble_app_buttonless_dfu_pca10056_s140
 TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ./nordic_nRF5
-PROJ_DIR := ./source
+SDK_ROOT := nordic_nRF5
+PROJ_DIR := source
 
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   LINKER_SCRIPT  := ./source/ble_app_buttonless_dfu_gcc_nrf52.ld
@@ -80,6 +80,9 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
+  $(PROJ_DIR)/modules/m_ble.c \
+  $(PROJ_DIR)/modules/m_board.c \
+  
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -128,6 +131,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/external/fprintf \
   $(SDK_ROOT)/components/libraries/svc \
   $(PROJ_DIR) \
+  $(PROJ_DIR)/modules \
 
 # Libraries common to all targets
 LIB_FILES += \
@@ -152,7 +156,7 @@ CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DSWI_DISABLE0
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
-CFLAGS += -Wall -Werror
+CFLAGS += -Wall #-Werror
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
