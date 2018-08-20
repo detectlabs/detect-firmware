@@ -81,8 +81,9 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
   $(PROJ_DIR)/modules/m_ble.c \
+  $(PROJ_DIR)/modules/m_ble_flash.c \
   $(PROJ_DIR)/modules/m_board.c \
-  $(PROJ_DIR)/modules/m_fds.c \
+  $(PROJ_DIR)/ble_services/ble_dcs.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -132,6 +133,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/svc \
   $(PROJ_DIR) \
   $(PROJ_DIR)/modules \
+  $(PROJ_DIR)/ble_services \
 
 # Libraries common to all targets
 LIB_FILES += \
