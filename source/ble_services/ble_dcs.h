@@ -20,13 +20,12 @@
 #define BLE_UUID_DCS_CONN_PARAM_CHAR    0x0103                      /**< The UUID of the connection parameters Characteristic. */
 #define BLE_UUID_DCS_FW_VERSION_CHAR    0x0104                      /**< The UUID of the FW version Characteristic. */
 
-// EF68xxxx-9B35-4933-9B10-52FFA9740042
-#define DCS_BASE_UUID                  {{0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x00, 0x68, 0xEF}} /**< Used vendor specific UUID. */
+// 5555xxxx-5555-5555-5555-555555555555
+#define DCS_BASE_UUID                  {{0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55}} /**< Used vendor specific UUID. */
 
 #define BLE_TCS_DEVICE_NAME_LEN_MAX 10
 
-#define BLE_UUID_DCS_SERVICE 0x0100                      /**< The UUID of the Thingy Configuration Service. */
-
+#define BLE_UUID_DCS_SERVICE 0x0100                      /**< The UUID of the Detect Configuration Service. */
 
 /* File ID and Key used for the configuration record. */
 
@@ -48,6 +47,11 @@
 #define DEVICE_NAME                     "Detect"                                    /**< Name of device. Will be included in the advertising data. */
 #define APP_ADV_INTERVAL_MS             380                                         /**< The advertising interval in ms. */
 #define APP_ADV_TIMEOUT_IN_SECONDS      180                                         /**< The advertising timeout in s. */
+
+#define DCS_ADV_PARAMS_INTERVAL_MIN 32UL
+#define DCS_ADV_PARAMS_INTERVAL_MAX 8000UL
+#define DCS_ADV_PARAMS_TIMEOUT_MIN  0UL
+#define DCS_ADV_PARAMS_TIMEOUT_MAX  180UL
 
 #define MIN_CONN_INTERVAL_MS            7.5                                         /**< Minimum acceptable connection interval in ms. */
 #define MAX_CONN_INTERVAL_MS            30                                          /**< Maximum acceptable connection interval in ms. */
@@ -135,9 +139,9 @@ typedef struct
 }ble_dcs_params_t;
 
 /**@brief Thingy Configuration Service event handler type. */
-typedef void (*ble_dcs_evt_handler_t) (ble_dcs_t        * p_tcs,
+typedef void (*ble_dcs_evt_handler_t) (ble_dcs_t          * p_dcs,
                                        ble_dcs_evt_type_t evt_type,
-                                       uint8_t          * p_data,
+                                       uint8_t  const     * p_data,
                                        uint16_t           length);
 
 /**@brief Thingy Configuration Service structure.
@@ -168,5 +172,17 @@ typedef struct
 } ble_dcs_init_t;
 
 uint32_t ble_dcs_init(ble_dcs_t * p_dcs, const ble_dcs_init_t * p_dcs_init);
+
+/**@brief Function for handling the Thingy Configuration Service's BLE events.
+ *
+ * @details The Thingy Configuration Service expects the application to call this function each time an
+ * event is received from the S110 SoftDevice. This function processes the event if it
+ * is relevant and calls the Thingy Configuration Service event handler of the
+ * application if necessary.
+ *
+ * @param[in] p_tcs       Thingy Configuration Service structure.
+ * @param[in] p_ble_evt   Event received from the S110 SoftDevice.
+ */
+void ble_dcs_on_ble_evt(ble_dcs_t * p_dcs, ble_evt_t const * p_ble_evt);
 
 #endif

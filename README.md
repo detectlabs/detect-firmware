@@ -50,3 +50,7 @@ Detect Configuration Service
 | Advertising param characteristic| 0102                                 | Read                 | 3 bytes          | <ul><li>uint8_t - major </li><li> uint8_t - minor </li><li> uint8_t - patch </li></ul>  |
 | Connection param characteristic | 0103                                 | Read                 | 3 bytes          | <ul><li>uint8_t - major </li><li> uint8_t - minor </li><li> uint8_t - patch </li></ul>  |
 | Firmware Version                | 0104                                 | Read                 | 3 bytes          | <ul><li>uint8_t - major </li><li> uint8_t - minor </li><li> uint8_t - patch </li></ul>  |
+
+
+## Credit
+Heavily Adapted from [Nordic-Thingy52-FW](https://github.com/NordicSemiconductor/Nordic-Thingy52-FW)

@@ -41,7 +41,7 @@ static ble_advertising_t * p_m_advertising;
 static uint16_t * p_m_conn_handle;
 
 // YOUR_JOB: Use UUIDs for service(s) used in your application.
-static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}};
+static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}};//, {BLE_UUID_DCS_SERVICE, BLE_UUID_TYPE_VENDOR_BEGIN}};
 
 /**@brief Function for handling the YYY Service events.
  * YOUR_JOB implement a service handler function depending on the event the service you are using can generate
@@ -435,14 +435,64 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
     APP_ERROR_HANDLER(nrf_error);
 }
 
-/**@brief Function for handling thingy configuration events.
+/**@brief Function for handling detect configuration events.
  */
 static void dcs_evt_handler (ble_dcs_t        * p_dcs,
                              ble_dcs_evt_type_t evt_type,
-                             uint8_t          * p_data,
+                             uint8_t  const        * p_data,
                              uint16_t           length)
 {
+    bool update_flash = false;
 
+    NRF_LOG_INFO("dcs_evt_handler:  %d.",evt_type);
+    switch (evt_type)
+    {
+        case BLE_DCS_EVT_DEV_NAME:
+            if (length <= BLE_TCS_DEVICE_NAME_LEN_MAX)
+            {
+                memcpy(m_ble_config->dev_name.name, p_data, length);
+                m_ble_config->dev_name.name[length] = 0;
+                m_ble_config->dev_name.len = length;
+                update_flash = true;
+            }
+            break;
+        case BLE_DCS_EVT_ADV_PARAM:
+            if (length == sizeof(ble_dcs_adv_params_t))
+            {
+                memcpy(&m_ble_config->adv_params, p_data, length);
+
+                update_flash = true;
+            }
+            break;
+        case BLE_DCS_EVT_CONN_PARAM:
+            if (length == sizeof(ble_dcs_conn_params_t))
+            {
+                uint32_t              err_code;
+                ble_gap_conn_params_t gap_conn_params;
+
+                memcpy(&m_ble_config->conn_params, p_data, length);
+                memset(&gap_conn_params, 0, sizeof(gap_conn_params));
+
+                gap_conn_params.min_conn_interval = m_ble_config->conn_params.min_conn_int;
+                gap_conn_params.max_conn_interval = m_ble_config->conn_params.max_conn_int;
+                gap_conn_params.slave_latency     = m_ble_config->conn_params.slave_latency;
+                gap_conn_params.conn_sup_timeout  = m_ble_config->conn_params.sup_timeout;
+
+                err_code = ble_conn_params_change_conn_params(*p_m_conn_handle, &gap_conn_params);
+                APP_ERROR_CHECK(err_code);
+
+                update_flash = true;
+            }
+            break;
+    }
+
+    if (update_flash)
+    {
+        uint32_t err_code;
+
+        err_code = m_ble_flash_config_store(m_ble_config);
+        APP_ERROR_CHECK(err_code);
+    }
 }
 
 
@@ -454,7 +504,7 @@ static void services_init(void)
     nrf_ble_qwr_init_t        qwr_init  = {0};
     ble_dfu_buttonless_init_t dfus_init = {0};
 
-    ble_dcs_init_t            dcs_init;
+    ble_dcs_init_t            dcs_init  = {0};
 
     // Initialize Queued Write Module.
     qwr_init.error_handler = nrf_qwr_error_handler;
@@ -482,6 +532,7 @@ static void services_init(void)
 
     err_code = ble_dcs_init(&m_dcs, &dcs_init);
     APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("ble_dcs_init:  %d.",err_code);
 
     /* YOUR_JOB: Add code to initialize the services used by the application.
        uint32_t                           err_code;
@@ -571,6 +622,10 @@ static void conn_params_init(void)
 static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 {
     uint32_t err_code = NRF_SUCCESS;
+
+    NRF_LOG_INFO("ble_evt_handler:  %d.",p_ble_evt->header.evt_id);
+
+    ble_dcs_on_ble_evt(&m_dcs, p_ble_evt);
 
     switch (p_ble_evt->header.evt_id)
     {
