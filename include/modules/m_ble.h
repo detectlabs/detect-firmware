@@ -1,12 +1,3 @@
- /** @file Motion module
- *
- * @defgroup m_motion Motion
- * @{
- * @ingroup modules
- * @brief Motion module API.
- *
- */
-
 #ifndef __M_BLE_H__
 #define __M_BLE_H__
 

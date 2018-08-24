@@ -1,11 +1,10 @@
-//Detect Configuration Service
 #include "sdk_macros.h"
 #include "ble_dcs.h"
 #include "nrf_log.h"
 
-/**@brief Function for handling the @ref BLE_GAP_EVT_CONNECTED event from the S132 SoftDevice.
+/**@brief Function for handling the @ref BLE_GAP_EVT_CONNECTED event from the S140 SoftDevice.
  *
- * @param[in] p_tcs     Thingy Configuration Service structure.
+ * @param[in] p_tcs     Detect Configuration Service structure.
  * @param[in] p_ble_evt Pointer to the event received from BLE stack.
  */
 static void on_connect(ble_dcs_t * p_tcs, ble_evt_t const * p_ble_evt)
@@ -14,9 +13,9 @@ static void on_connect(ble_dcs_t * p_tcs, ble_evt_t const * p_ble_evt)
 }
 
 
-/**@brief Function for handling the @ref BLE_GAP_EVT_DISCONNECTED event from the S132 SoftDevice.
+/**@brief Function for handling the @ref BLE_GAP_EVT_DISCONNECTED event from the S140 SoftDevice.
  *
- * @param[in] p_tcs     Thingy Configuration Service structure.
+ * @param[in] p_tcs     Detect Configuration Service structure.
  * @param[in] p_ble_evt Pointer to the event received from BLE stack.
  */
 static void on_disconnect(ble_dcs_t * p_tcs, ble_evt_t const * p_ble_evt)
@@ -24,6 +23,7 @@ static void on_disconnect(ble_dcs_t * p_tcs, ble_evt_t const * p_ble_evt)
     UNUSED_PARAMETER(p_ble_evt);
     p_tcs->conn_handle = BLE_CONN_HANDLE_INVALID;
 }
+
 
 static void on_authorize_req(ble_dcs_t * p_dcs, ble_evt_t const * p_ble_evt)
 {
@@ -147,6 +147,7 @@ static void on_authorize_req(ble_dcs_t * p_dcs, ble_evt_t const * p_ble_evt)
     }
 }
 
+
 void ble_dcs_on_ble_evt(ble_dcs_t * p_dcs, ble_evt_t const * p_ble_evt)
 {
     if ((p_dcs == NULL) || (p_ble_evt == NULL))
@@ -173,6 +174,7 @@ void ble_dcs_on_ble_evt(ble_dcs_t * p_dcs, ble_evt_t const * p_ble_evt)
             break;
     }
 }
+
 
 /**@brief Function for adding device name characteristic.
  *
@@ -210,7 +212,6 @@ static uint32_t device_name_char_add(ble_dcs_t * p_dcs, const ble_dcs_init_t * p
     attr_md.vloc    = BLE_GATTS_VLOC_STACK;
     attr_md.rd_auth = 0;
     attr_md.wr_auth = 1;
-    //attr_md.wr_auth = 0;
     attr_md.vlen    = 1;
 
     memset(&attr_char_value, 0, sizeof(attr_char_value));
@@ -227,6 +228,7 @@ static uint32_t device_name_char_add(ble_dcs_t * p_dcs, const ble_dcs_init_t * p
                                            &attr_char_value,
                                            &p_dcs->dev_name_handles);
 }
+
 
 /**@brief Function for adding advertising parameters characteristic.
  *
@@ -281,6 +283,7 @@ static uint32_t adv_params_char_add(ble_dcs_t * p_tcs, const ble_dcs_init_t * p_
                                            &p_tcs->adv_param_handles);
 }
 
+
 /**@brief Function for adding connection parameters characteristic.
  *
  * @param[in] p_tcs       Detect Configuration Service structure.
@@ -334,6 +337,7 @@ static uint32_t conn_params_char_add(ble_dcs_t * p_dcs, const ble_dcs_init_t * p
                                            &p_dcs->conn_param_handles);
 }
 
+
 /**@brief Function for adding FW version characteristic.
  *
  * @param[in] p_tcs       Detect Configuration Service structure.
@@ -383,6 +387,8 @@ static uint32_t fw_version_char_add(ble_dcs_t * p_dcs, const ble_dcs_init_t * p_
                                            &attr_char_value,
                                            &p_dcs->fwv_handles);
 }
+
+
 
 uint32_t ble_dcs_init(ble_dcs_t * p_dcs, const ble_dcs_init_t * p_dcs_init)
 {

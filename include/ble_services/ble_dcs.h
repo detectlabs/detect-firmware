@@ -138,19 +138,19 @@ typedef struct
     ble_dcs_fw_version_t    fw_version;
 }ble_dcs_params_t;
 
-/**@brief Thingy Configuration Service event handler type. */
+/**@brief Detect Configuration Service event handler type. */
 typedef void (*ble_dcs_evt_handler_t) (ble_dcs_t          * p_dcs,
                                        ble_dcs_evt_type_t evt_type,
                                        uint8_t  const     * p_data,
                                        uint16_t           length);
 
-/**@brief Thingy Configuration Service structure.
+/**@brief Detect Configuration Service structure.
  *
  * @details This structure contains status information related to the service.
  */
 struct ble_dcs_s
 {
-    uint8_t                  uuid_type;                    /**< UUID type for Thingy Configuration Service Base UUID. */
+    uint8_t                  uuid_type;                    /**< UUID type for Detect Configuration Service Base UUID. */
     uint16_t                 service_handle;               /**< Handle of Thingy Configuration Service (as provided by the S110 SoftDevice). */
     ble_gatts_char_handles_t dev_name_handles;             /**< Handles related to the temperature characteristic (as provided by the S132 SoftDevice). */
     ble_gatts_char_handles_t adv_param_handles;            /**< Handles related to the pressure characteristic (as provided by the S132 SoftDevice). */

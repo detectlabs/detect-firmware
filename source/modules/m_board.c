@@ -4,11 +4,13 @@ static ble_advertising_t * p_m_advertising;
 static uint16_t * p_m_conn_handle;
 static bool * p_erase_bonds;
 
+
 void m_board_power_management_init(void)
 {
     uint32_t err_code = nrf_pwr_mgmt_init();
     APP_ERROR_CHECK(err_code);
 }
+
 
 /**@brief Function for putting the chip into sleep mode.
  *
@@ -30,6 +32,7 @@ void m_board_sleep_mode_enter(void)
     APP_ERROR_CHECK(err_code);
 }
 
+
 /**@brief Function for initializing buttons and leds.
  *
  * @param[out] p_erase_bonds  Will be true if the clear bonding button was pressed to wake the application up.
@@ -47,6 +50,7 @@ void m_board_buttons_leds_init(bool * p_erase_bonds)
 
     *p_erase_bonds = (startup_event == BSP_EVENT_CLEAR_BONDING_DATA);
 }
+
 
 /**@brief Function for handling events from the BSP module.
  *
@@ -86,6 +90,7 @@ void m_board_bsp_event_handler(bsp_event_t event)
             break;
     }
 }
+
 
 /**@brief Function for initializaing the Board.
  */

@@ -10,6 +10,7 @@
 #define DC_FILE_ID 0x2000
 #define DC_REC_KEY 0x2001
 
+
 /**@brief Data structure of configuration data stored to flash.
  */
 typedef struct
@@ -71,25 +72,6 @@ static char const * fds_evt_str[] =
     "FDS_EVT_GC",
 };
 
-// /* Dummy configuration data. */
-// static configuration_t m_dummy_cfg =
-// {
-//     .config1_on  = false,
-//     .config2_on  = true,
-//     .boot_count  = 0x0,
-//     .device_name = "dummy",
-// };
-
-// /* A record containing dummy configuration data. */
-// static fds_record_t const m_dummy_record =
-// {
-//     .file_id           = CONFIG_FILE,
-//     .key               = CONFIG_REC_KEY,
-//     .data.p_data       = &m_dummy_cfg,
-//     /* The length of a record is always expressed in 4-byte units (words). */
-//     .data.length_words = (sizeof(m_dummy_cfg) + 3) / sizeof(uint32_t),
-// };
-
 /* Keep track of the progress of a delete_all operation. */
 static struct
 {
@@ -140,6 +122,7 @@ static void fds_evt_handler(fds_evt_t const * p_evt)
     }
 }
 
+
 /**@brief   Wait for fds to initialize. */
 static void wait_for_fds_ready(void)
 {
@@ -149,38 +132,33 @@ static void wait_for_fds_ready(void)
     }
 }
 
+
 uint32_t m_ble_flash_config_store(const ble_dcs_params_t * p_config)
 {
     ret_code_t rc;
-    //uint32_t            err_code;
     fds_record_t        record;
-    //fds_record_chunk_t  record_chunk;
 
     NRF_LOG_INFO("Storing configuration \r\n");
 
-    //NULL_PARAM_CHECK(p_config);
+    VERIFY_PARAM_NOT_NULL(p_config);
 
     memcpy(&m_config.data.config, p_config, sizeof(ble_dcs_params_t));
     m_config.data.valid = DC_FLASH_CONFIG_VALID;
 
     // Set up data.
-    //record_chunk.p_data         = &m_config;
-    //record_chunk.length_words   = sizeof(dc_flash_config_t)/4;
-
     record.data.p_data          = &m_config;
     record.data.length_words    = sizeof(dc_flash_config_t)/4;
 
     // Set up record.
     record.file_id              = DC_FILE_ID;
     record.key                  = DC_REC_KEY;
-    //record.data.p_chunks        = &record_chunk;
-    //record.data.num_chunks      = 1;
 
     rc = fds_record_update(&m_record_desc, &record);
     APP_ERROR_CHECK(rc);
 
     return NRF_SUCCESS;
 }
+
 
 uint32_t m_ble_flash_config_load(ble_dcs_params_t ** p_config)
 {
@@ -195,7 +173,6 @@ uint32_t m_ble_flash_config_load(ble_dcs_params_t ** p_config)
     rc = fds_record_find(DC_FILE_ID, DC_REC_KEY, &m_record_desc, &ftok);
     if (rc == FDS_ERR_NOT_FOUND)
         return rc;
-    //APP_ERROR_CHECK(rc);
 
     rc = fds_record_open(&m_record_desc, &flash_record);
     APP_ERROR_CHECK(rc);
@@ -236,7 +213,6 @@ uint32_t m_ble_flash_init(const ble_dcs_params_t    * p_default_config,
     if (rc == FDS_ERR_NOT_FOUND)
     {
         fds_record_t        record;
-        //fds_record_chunk_t  record_chunk;
 
         NRF_LOG_INFO("Writing default config\r\n");
 
@@ -244,80 +220,23 @@ uint32_t m_ble_flash_init(const ble_dcs_params_t    * p_default_config,
         m_config.data.valid = DC_FLASH_CONFIG_VALID;
 
         // Set up data.
-        // record_chunk.p_data         = &m_config;
-        // record_chunk.length_words   = sizeof(dc_flash_config_t)/4;
-
         record.data.p_data          = &m_config;
         record.data.length_words    = sizeof(dc_flash_config_t)/4;
 
         // Set up record.
         record.file_id              = DC_FILE_ID;
         record.key                  = DC_REC_KEY;
-        //record.data.p_chunks        = &record_chunk;
-        //record.data.num_chunks      = 1;
 
         m_fds_write_success = false;
         rc = fds_record_write(&m_record_desc, &record);
         APP_ERROR_CHECK(rc);
 
         *p_config = &m_config.data.config;
-
-        // while(m_fds_write_success != true)
-        // {
-        //     app_sched_execute();
-        // }
     }
     else
     {
         APP_ERROR_CHECK(rc);
     }
-
-    // fds_stat_t stat = {0};
-
-    // rc = fds_stat(&stat);
-    // APP_ERROR_CHECK(rc);
-
-    // NRF_LOG_INFO("Found %d valid records.", stat.valid_records);
-    // NRF_LOG_INFO("Found %d dirty records (ready to be garbage collected).", stat.dirty_records);
-
-    // fds_record_desc_t desc = {0};
-    // fds_find_token_t  tok  = {0};
-
-    // rc = fds_record_find(CONFIG_FILE, CONFIG_REC_KEY, &desc, &tok);
-
-    // if (rc == FDS_SUCCESS)
-    // {
-    //     /* A config file is in flash. Let's update it. */
-    //     fds_flash_record_t config = {0};
-
-    //     /* Open the record and read its contents. */
-    //     rc = fds_record_open(&desc, &config);
-    //     APP_ERROR_CHECK(rc);
-
-    //     /* Copy the configuration from flash into m_dummy_cfg. */
-    //     memcpy(&m_dummy_cfg, config.p_data, sizeof(configuration_t));
-
-    //     NRF_LOG_INFO("Config file found, updating boot count to %d.", m_dummy_cfg.boot_count);
-
-    //     /* Update boot count. */
-    //     m_dummy_cfg.boot_count++;
-
-    //     /* Close the record when done reading. */
-    //     rc = fds_record_close(&desc);
-    //     APP_ERROR_CHECK(rc);
-
-    //     /* Write the updated record to flash. */
-    //     rc = fds_record_update(&desc, &m_dummy_record);
-    //     APP_ERROR_CHECK(rc);
-    // }
-    // else
-    // {
-    //     /* System config not found; write a new one. */
-    //     NRF_LOG_INFO("Writing config file...");
-
-    //     rc = fds_record_write(&desc, &m_dummy_record);
-    //     APP_ERROR_CHECK(rc);
-    // }
 
     return NRF_SUCCESS;
 }

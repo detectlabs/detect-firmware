@@ -28,7 +28,6 @@
 #define SEC_PARAM_MIN_KEY_SIZE          7                                           /**< Minimum encryption key size. */
 #define SEC_PARAM_MAX_KEY_SIZE          16                                          /**< Maximum encryption key size. */
 
-
 NRF_BLE_GATT_DEF(m_gatt);                                                           /**< GATT module instance. */
 NRF_BLE_QWR_DEF(m_qwr);                                                             /**< Context for the Queued Write module.*/
 
@@ -40,7 +39,7 @@ static ble_advertising_t * p_m_advertising;
 static uint16_t * p_m_conn_handle;
 
 // YOUR_JOB: Use UUIDs for service(s) used in your application.
-static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}};//, {BLE_UUID_DCS_SERVICE, BLE_UUID_TYPE_VENDOR_BEGIN}};
+static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}};
 
 /**@brief Function for handling the YYY Service events.
  * YOUR_JOB implement a service handler function depending on the event the service you are using can generate
@@ -319,10 +318,6 @@ uint32_t gap_params_init(void)
 
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
-    // err_code = sd_ble_gap_device_name_set(&sec_mode,
-    //                                       (const uint8_t *)DEVICE_NAME,
-    //                                       strlen(DEVICE_NAME));
-
     err_code = sd_ble_gap_device_name_set(&sec_mode,
                                           m_ble_config->dev_name.name,
                                           strlen((const char *)m_ble_config->dev_name.name));
@@ -334,18 +329,13 @@ uint32_t gap_params_init(void)
 
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
 
-    // gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
-    // gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
-    // gap_conn_params.slave_latency     = SLAVE_LATENCY;
-    // gap_conn_params.conn_sup_timeout  = CONN_SUP_TIMEOUT;
-
     gap_conn_params.min_conn_interval = m_ble_config->conn_params.min_conn_int;
     gap_conn_params.max_conn_interval = m_ble_config->conn_params.max_conn_int;
     gap_conn_params.slave_latency     = m_ble_config->conn_params.slave_latency;
     gap_conn_params.conn_sup_timeout  = m_ble_config->conn_params.sup_timeout;
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
-    //APP_ERROR_CHECK(err_code);
+
     if (err_code == NRF_ERROR_INVALID_PARAM)
     { 
         // Use default config
@@ -438,7 +428,7 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
  */
 static void dcs_evt_handler (ble_dcs_t        * p_dcs,
                              ble_dcs_evt_type_t evt_type,
-                             uint8_t  const        * p_data,
+                             uint8_t  const   * p_data,
                              uint16_t           length)
 {
     bool update_flash = false;
@@ -568,6 +558,7 @@ static void conn_params_error_handler(uint32_t nrf_error)
     APP_ERROR_HANDLER(nrf_error);
 }
 
+
 /**@brief Function for handling the Connection Parameters Module.
  *
  * @details This function will be called for all events in the Connection Parameters Module which
@@ -673,6 +664,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             break;
     }
 }
+
 
 /**@brief Function for initializing the BLE stack.
  *
