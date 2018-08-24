@@ -3,7 +3,7 @@ TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := nordic_nRF5
-PROJ_DIR := source
+PROJ_DIR := ./
 
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   LINKER_SCRIPT  := ./source/ble_app_buttonless_dfu_gcc_nrf52.ld
@@ -51,7 +51,7 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp_btn_ble.c \
-  $(PROJ_DIR)/main.c \
+  $(PROJ_DIR)/source/main.c \
   $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_svci.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
@@ -80,10 +80,10 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
-  $(PROJ_DIR)/modules/m_ble.c \
-  $(PROJ_DIR)/modules/m_ble_flash.c \
-  $(PROJ_DIR)/modules/m_board.c \
-  $(PROJ_DIR)/ble_services/ble_dcs.c \
+  $(PROJ_DIR)/source/modules/m_ble.c \
+  $(PROJ_DIR)/source/modules/m_ble_flash.c \
+  $(PROJ_DIR)/source/modules/m_board.c \
+  $(PROJ_DIR)/source/ble_services/ble_dcs.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -131,9 +131,9 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/ble/ble_services/ble_dfu \
   $(SDK_ROOT)/external/fprintf \
   $(SDK_ROOT)/components/libraries/svc \
-  $(PROJ_DIR) \
-  $(PROJ_DIR)/modules \
-  $(PROJ_DIR)/ble_services \
+  $(PROJ_DIR)/config \
+  $(PROJ_DIR)/include/modules \
+  $(PROJ_DIR)/include/ble_services \
 
 # Libraries common to all targets
 LIB_FILES += \

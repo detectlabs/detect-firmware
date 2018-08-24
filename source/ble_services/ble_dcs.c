@@ -176,7 +176,7 @@ void ble_dcs_on_ble_evt(ble_dcs_t * p_dcs, ble_evt_t const * p_ble_evt)
 
 /**@brief Function for adding device name characteristic.
  *
- * @param[in] p_tcs       Thingy Configuration Service structure.
+ * @param[in] p_tcs       Detect Configuration Service structure.
  * @param[in] p_tcs_init  Information needed to initialize the service.
  *
  * @return NRF_SUCCESS on success, otherwise an error code.
@@ -230,7 +230,7 @@ static uint32_t device_name_char_add(ble_dcs_t * p_dcs, const ble_dcs_init_t * p
 
 /**@brief Function for adding advertising parameters characteristic.
  *
- * @param[in] p_tcs       Thingy Configuration Service structure.
+ * @param[in] p_tcs       Detect Configuration Service structure.
  * @param[in] p_tcs_init  Information needed to initialize the service.
  *
  * @return NRF_SUCCESS on success, otherwise an error code.
@@ -281,6 +281,109 @@ static uint32_t adv_params_char_add(ble_dcs_t * p_tcs, const ble_dcs_init_t * p_
                                            &p_tcs->adv_param_handles);
 }
 
+/**@brief Function for adding connection parameters characteristic.
+ *
+ * @param[in] p_tcs       Detect Configuration Service structure.
+ * @param[in] p_tcs_init  Information needed to initialize the service.
+ *
+ * @return NRF_SUCCESS on success, otherwise an error code.
+ */
+static uint32_t conn_params_char_add(ble_dcs_t * p_dcs, const ble_dcs_init_t * p_dcs_init)
+{
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_uuid_t          ble_uuid;
+    ble_gatts_attr_md_t attr_md;
+
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.write         = 1;
+    char_md.char_props.write_wo_resp = 0;
+    char_md.char_props.read          = 1;
+    char_md.p_char_user_desc         = NULL;
+    char_md.p_char_pf                = NULL;
+    char_md.p_user_desc_md           = NULL;
+    char_md.p_cccd_md                = NULL;
+    char_md.p_sccd_md                = NULL;
+
+    ble_uuid.type = p_dcs->uuid_type;
+    ble_uuid.uuid = BLE_UUID_DCS_CONN_PARAM_CHAR;
+
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
+
+    attr_md.vloc    = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth = 0;
+    attr_md.wr_auth = 1;
+    attr_md.vlen    = 1;
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = sizeof(ble_dcs_conn_params_t);
+    attr_char_value.init_offs = 0;
+    attr_char_value.p_value   = (uint8_t *)&p_dcs_init->p_init_vals->conn_params;
+    attr_char_value.max_len   = sizeof(ble_dcs_conn_params_t);
+
+    return sd_ble_gatts_characteristic_add(p_dcs->service_handle,
+                                           &char_md,
+                                           &attr_char_value,
+                                           &p_dcs->conn_param_handles);
+}
+
+/**@brief Function for adding FW version characteristic.
+ *
+ * @param[in] p_tcs       Detect Configuration Service structure.
+ * @param[in] p_tcs_init  Information needed to initialize the service.
+ *
+ * @return NRF_SUCCESS on success, otherwise an error code.
+ */
+static uint32_t fw_version_char_add(ble_dcs_t * p_dcs, const ble_dcs_init_t * p_dcs_init)
+{
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_uuid_t          ble_uuid;
+    ble_gatts_attr_md_t attr_md;
+
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.read          = 1;
+    char_md.p_char_user_desc         = NULL;
+    char_md.p_char_pf                = NULL;
+    char_md.p_user_desc_md           = NULL;
+    char_md.p_cccd_md                = NULL;
+    char_md.p_sccd_md                = NULL;
+
+    ble_uuid.type = p_dcs->uuid_type;
+    ble_uuid.uuid = BLE_UUID_DCS_FW_VERSION_CHAR;
+
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
+
+    attr_md.vloc    = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth = 0;
+    attr_md.wr_auth = 0;
+    attr_md.vlen    = 1;
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = sizeof(ble_dcs_fw_version_t);
+    attr_char_value.init_offs = 0;
+    attr_char_value.p_value   = (uint8_t *)&p_dcs_init->p_init_vals->fw_version;
+    attr_char_value.max_len   = sizeof(ble_dcs_fw_version_t);
+
+    return sd_ble_gatts_characteristic_add(p_dcs->service_handle,
+                                           &char_md,
+                                           &attr_char_value,
+                                           &p_dcs->fwv_handles);
+}
+
 uint32_t ble_dcs_init(ble_dcs_t * p_dcs, const ble_dcs_init_t * p_dcs_init)
 {
     uint32_t        err_code;
@@ -324,13 +427,13 @@ uint32_t ble_dcs_init(ble_dcs_t * p_dcs, const ble_dcs_init_t * p_dcs_init)
     err_code = adv_params_char_add(p_dcs, p_dcs_init);
     VERIFY_SUCCESS(err_code);
 
-    // // Add the connection parameters Characteristic.
-    // err_code = conn_params_char_add(p_dcs, p_dcs_init);
-    // VERIFY_SUCCESS(err_code);
+    // Add the connection parameters Characteristic.
+    err_code = conn_params_char_add(p_dcs, p_dcs_init);
+    VERIFY_SUCCESS(err_code);
 
-    // // Add the FW version Characteristic.
-    // err_code = fw_version_char_add(p_dcs, p_dcs_init);
-    // VERIFY_SUCCESS(err_code);
+    // Add the FW version Characteristic.
+    err_code = fw_version_char_add(p_dcs, p_dcs_init);
+    VERIFY_SUCCESS(err_code);
 
     return NRF_SUCCESS;
 }
