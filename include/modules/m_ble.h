@@ -40,6 +40,49 @@
 #include "nrf_log_default_backends.h"
 #include "nrf_bootloader_info.h"
 
+/**@brief BLE event types.
+ */
+typedef enum
+{
+    detect_ble_evt_connected,
+    detect_ble_evt_disconnected,
+    detect_ble_evt_timeout
+}m_ble_evt_type_t;
+
+
+/**@brief BLE event structure.
+ */
+typedef struct
+{
+    m_ble_evt_type_t evt_type;
+    void             * p_data;
+    uint32_t           size;
+}m_ble_evt_t;
+
+typedef void (*m_ble_evt_handler_t)(m_ble_evt_t * p_evt);
+
+/**@brief  BLE service callback definitions.
+*/
+typedef void (*m_ble_service_evt_cb_t)(ble_evt_t * p_ble_evt);
+typedef uint32_t (*m_ble_service_init_cb_t)(bool flash_reinit);
+
+/**@brief BLE service handle structure.
+*/
+typedef struct
+{
+    m_ble_service_init_cb_t    init_cb;
+    m_ble_service_evt_cb_t  ble_evt_cb;
+}m_ble_service_handle_t;
+
+/**@brief Initialization parameters.
+*/
+typedef struct
+{
+    m_ble_evt_handler_t      evt_handler;
+    m_ble_service_handle_t * p_service_handles;
+    uint32_t                 service_num;
+}m_ble_init_t;
+
 void m_ble_advertising_start(bool erase_bonds);                                    /**< Forward declaration of advertising start function */
 
 uint32_t m_ble_advertising_restart_without_whitelist(void);

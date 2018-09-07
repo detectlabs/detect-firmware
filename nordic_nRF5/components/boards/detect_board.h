@@ -78,8 +78,10 @@ extern "C" {
 #define TWI_SDA                             21
 #define TWI_SCL                             19
 #define MASTER_TWI_INST                     0
-#define TWI_ADDRESS_CONFIG    LITTLE_ENDIAN
+#define TWI_ADDRESS_CONFIG                  LITTLE_ENDIAN
 
+#define AK9750_ADDR 0x64
+#define AK9750_INT 22
 
 
 // Low frequency clock source to be used by the SoftDevice

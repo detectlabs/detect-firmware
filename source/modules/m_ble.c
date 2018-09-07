@@ -35,6 +35,10 @@ static ble_dcs_t                  m_dcs;
 static ble_dcs_params_t         * m_ble_config;
 static const ble_dcs_params_t     m_ble_default_config = DETECT_CONFIG_DEFAULT;
 
+static m_ble_evt_handler_t        m_evt_handler = 0;
+static m_ble_service_handle_t   * m_service_handles = 0;
+static uint32_t                   m_service_num = 0;
+static bool                       m_major_minor_fw_ver_changed = false;
 static ble_advertising_t * p_m_advertising;
 static uint16_t * p_m_conn_handle;
 
@@ -103,11 +107,14 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
     switch (ble_adv_evt)
     {
         case BLE_ADV_EVT_FAST:
+            NRF_LOG_INFO("on_adv_evt: BLE_ADV_EVT_FAST\r\n");
             err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
             APP_ERROR_CHECK(err_code);
             break;
 
         case BLE_ADV_EVT_IDLE:
+            NRF_LOG_INFO("on_adv_evt: BLE_ADV_EVT_IDLE\r\n");
+            NRF_LOG_INFO("************* ENTERING SLEEP MODE *****************\r\n");
             m_board_sleep_mode_enter();
             break;
 
@@ -122,7 +129,7 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
 static void advertising_init(void)
 {
     uint32_t               err_code;
-    ble_advertising_init_t init;
+    ble_advertising_init_t init; 
 
     memset(&init, 0, sizeof(init));
 
@@ -487,7 +494,7 @@ static void dcs_evt_handler (ble_dcs_t        * p_dcs,
 
 /**@brief Function for initializing services that will be used by the application.
  */
-static void services_init(void)
+static void services_init(m_ble_service_handle_t * p_service_handles, uint32_t num_services)
 {
     uint32_t                  err_code;
     nrf_ble_qwr_init_t        qwr_init  = {0};
@@ -522,6 +529,19 @@ static void services_init(void)
     err_code = ble_dcs_init(&m_dcs, &dcs_init);
     APP_ERROR_CHECK(err_code);
     NRF_LOG_INFO("ble_dcs_init:  %d.",err_code);
+
+
+    for (uint32_t i = 0; i < num_services; i++)
+    {
+        if (p_service_handles[i].init_cb != NULL)
+        {
+            err_code = p_service_handles[i].init_cb(m_major_minor_fw_ver_changed);
+            if (err_code != NRF_SUCCESS)
+            {
+                return err_code;
+            }
+        }
+    }
 
     /* YOUR_JOB: Add code to initialize the services used by the application.
        uint32_t                           err_code;
@@ -691,12 +711,16 @@ static void ble_stack_init(void)
 }
 
 
-uint32_t m_ble_init(uint16_t * _m_conn_handle, ble_advertising_t * _m_advertising)
+uint32_t m_ble_init(m_ble_init_t * p_params, uint16_t * _m_conn_handle, ble_advertising_t * _m_advertising)
 {
     uint32_t err_code;
 
     p_m_conn_handle = _m_conn_handle;
     p_m_advertising = _m_advertising;
+
+    m_evt_handler     = p_params->evt_handler;
+    m_service_handles = p_params->p_service_handles;
+    m_service_num     = p_params->service_num;
     
     ble_stack_init();
 
@@ -716,7 +740,7 @@ uint32_t m_ble_init(uint16_t * _m_conn_handle, ble_advertising_t * _m_advertisin
     gatt_init();
     advertising_init();
 
-    services_init();
+    services_init(m_service_handles, m_service_num);
     conn_params_init();
 
     return NRF_SUCCESS;
