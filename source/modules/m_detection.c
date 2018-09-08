@@ -2,7 +2,8 @@
 #include "detect_board.h"
 #include "drv_presence.h"
 
-//static ble_dds_t              m_dds;            ///< Structure to identify the Thingy Environment Service.
+static ble_dds_config_t     * m_p_config;       ///< Configuraion pointer./
+static const ble_dds_config_t m_default_config = DETECTION_CONFIG_DEFAULT; ///< Default configuraion.
 
 APP_TIMER_DEF(presence_timer_id);
 
@@ -89,8 +90,28 @@ static uint32_t presence_start(void)
     //                        NULL);
 
     return app_timer_start(presence_timer_id,
-                           APP_TIMER_TICKS(2000),
+                           APP_TIMER_TICKS(200),
                            NULL);                       
+}
+
+static uint32_t config_verify(ble_dds_config_t * p_config)
+{
+    uint32_t err_code;
+
+    if ( (p_config->presence_interval_ms < BLE_DDS_CONFIG_PRESENCE_INT_MIN)            ||
+         (p_config->presence_interval_ms > BLE_DDS_CONFIG_PRESENCE_INT_MAX)            ||
+         (p_config->range_interval_ms < BLE_DDS_CONFIG_RANGE_INT_MIN)                  ||
+         (p_config->range_interval_ms > BLE_DDS_CONFIG_RANGE_INT_MAX)                  ||
+         (p_config->threshold_config.eth13h < BLE_DDS_CONFIG_THRESHOLD_MIN)            ||
+         (p_config->threshold_config.eth13l > BLE_DDS_CONFIG_THRESHOLD_MAX)            ||
+         (p_config->threshold_config.eth24h < BLE_DDS_CONFIG_THRESHOLD_MIN)            ||
+         ((int)p_config->threshold_config.eth24l > (int)BLE_DDS_CONFIG_THRESHOLD_MAX))
+    {
+        err_code = m_det_flash_config_store((ble_dds_config_t *)&m_default_config);
+        APP_ERROR_CHECK(err_code);
+    }
+
+    return NRF_SUCCESS;
 }
 
 /**@brief Function for applying the configuration.
@@ -142,6 +163,13 @@ static void detection_on_ble_evt(ble_evt_t * p_ble_evt)
  */
 static uint32_t detection_service_init(bool major_minor_fw_ver_changed)
 {
+    uint32_t err_code;
+    ret_code_t rc;
+
+    /**@brief Load configuration from flash. */
+    rc = m_det_flash_init(&m_default_config, &m_p_config);
+    APP_ERROR_CHECK(rc);
+
     NRF_LOG_INFO("Init: ble_dds_init \r\n");
 
     (void)config_apply(); //m_p_config);

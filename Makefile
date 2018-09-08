@@ -87,6 +87,7 @@ SRC_FILES += \
   $(PROJ_DIR)/source/modules/m_ble_flash.c \
   $(PROJ_DIR)/source/modules/m_board.c \
   $(PROJ_DIR)/source/modules/m_detection.c \
+  $(PROJ_DIR)/source/modules/m_detection_flash.c \
   $(PROJ_DIR)/source/ble_services/ble_dcs.c \
   $(PROJ_DIR)/source/drivers/drv_presence.c \
   $(PROJ_DIR)/source/drivers/drv_ak9750.c \

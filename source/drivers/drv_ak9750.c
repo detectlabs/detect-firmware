@@ -229,49 +229,6 @@ uint32_t drv_ak9750_one_shot(void)
     RETURN_IF_ERROR(err_code);
     NRF_LOG_INFO("ECNTL1 %d \r\n", dummy);
 
-    // do{
-    //     err_code = reg_read(ST1, &st1);
-    //     RETURN_IF_ERROR(err_code);
-    //     iTimeout++;
-    //     //usleep(5000);
-    //     nrf_delay_ms(1);
-    //     if (iTimeout > 100) 
-    //     {
-    //         NRF_LOG_RAW_INFO("\nAK Timeout\n");
-    //         return 1; 
-    //     }
-    // }while(!(st1[0] & (1<<0)));
-
-    
-
-    // err_code = reg_read(IR1L, &dummy);
-    // RETURN_IF_ERROR(err_code);
-    // NRF_LOG_INFO("IR1L %d \r\n", dummy);
-
-    // err_code = reg_read(IR1H, &dummy);
-    // RETURN_IF_ERROR(err_code);
-    // NRF_LOG_INFO("IR1H %d \r\n", dummy);
-
-    // // if (reg_val & INTST_DRI_MASK)
-    // // {
-    // //     return NRF_ERROR_BUSY;
-    // // }
-
-    // //reg_val |= CTRL_REG2_ONE_SHOT_Msk;
-
-    // //err_code = reg_write(CTRL_REG2, reg_val);
-    // //RETURN_IF_ERROR(err_code);
-
-    // err_code = reg_read(ST1, &dummy);
-    // RETURN_IF_ERROR(err_code);
-
-    // err_code = reg_read(ST2, &dummy);
-    // RETURN_IF_ERROR(err_code);
-
-    // err_code = reg_read(ECNTL1, &dummy);
-    // RETURN_IF_ERROR(err_code);
-    // NRF_LOG_INFO("ECNTL1 2 %d \r\n", dummy);
-
     return NRF_SUCCESS;
 }
 

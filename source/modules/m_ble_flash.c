@@ -203,8 +203,13 @@ uint32_t m_ble_flash_init(const ble_dcs_params_t    * p_default_config,
     rc = fds_init();
     APP_ERROR_CHECK(rc);
 
-    /* Wait for fds to initialize. */
-    wait_for_fds_ready();
+    // /* Wait for fds to initialize. */
+    // wait_for_fds_ready();
+
+     while (m_fds_initialized == false)
+    {
+        app_sched_execute();
+    }
 
     // NRF_LOG_INFO("Reading flash usage statistics...");
 
