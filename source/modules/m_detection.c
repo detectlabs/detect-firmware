@@ -1,12 +1,14 @@
 #include "m_detection.h"
 #include "detect_board.h"
 #include "drv_presence.h"
+#include "drv_range.h"
 
 static ble_dds_t              m_dds;            ///< Structure to identify the Thingy Environment Service.
 static ble_dds_config_t     * m_p_config;       ///< Configuraion pointer./
 static const ble_dds_config_t m_default_config = DETECTION_CONFIG_DEFAULT; ///< Default configuraion.
 
 APP_TIMER_DEF(presence_timer_id);
+APP_TIMER_DEF(range_timer_id);
 
 /**@brief Pressure sensor event handler.
  */
@@ -38,6 +40,36 @@ static void drv_presence_evt_handler(drv_presence_evt_t const * p_event)
     }
 }
 
+/**@brief Pressure sensor event handler.
+ */
+static void drv_range_evt_handler(drv_range_evt_t const * p_event)
+{
+    NRF_LOG_INFO("******************************************HERE \r\n");
+    switch (p_event->type)
+    {
+        case DRV_RANGE_EVT_DATA:
+        {
+            if (p_event->mode == DRV_RANGE_MODE_CONTINUOUS)
+            {
+                ble_dds_range_t range;
+
+                // drv_range_get(&range);
+                // (void)ble_dds_range_set(&m_dds, &range);
+                NRF_LOG_INFO("********RANGE EVENT!!!!! \r\n");
+
+            }
+        }
+        break;
+
+        case DRV_RANGE_EVT_ERROR:
+            APP_ERROR_CHECK_BOOL(false);
+            break;
+
+        default:
+            break;
+    }
+}
+
 /**@brief Function for handling pressure timer timout event.
  *
  * @details This function will read the pressure at the configured rate.
@@ -49,6 +81,20 @@ static void presence_timeout_handler(void * p_context)
     NRF_LOG_INFO("PRESENCE TIMEOUT HANDLER!!!!! \r\n");
 
     err_code = drv_presence_sample();
+    APP_ERROR_CHECK(err_code);
+}
+
+/**@brief Function for handling pressure timer timout event.
+ *
+ * @details This function will read the pressure at the configured rate.
+ */
+static void range_timeout_handler(void * p_context)
+{
+    uint32_t err_code;
+
+    NRF_LOG_INFO("RANGE TIMEOUT HANDLER!!!!! \r\n");
+
+    err_code = drv_range_sample();
     APP_ERROR_CHECK(err_code);
 }
 
@@ -280,6 +326,29 @@ static uint32_t presence_sensor_init(const nrf_drv_twi_t * p_twi_instance)
     return drv_presence_init(&init_params);
 }
 
+static uint32_t range_sensor_init(const nrf_drv_twi_t * p_twi_instance)
+{
+    drv_range_init_t init_params;
+
+    static const nrf_drv_twi_config_t twi_config =
+    {
+        .scl                = TWI_SCL,
+        .sda                = TWI_SDA,
+        .frequency          = NRF_TWI_FREQ_400K,
+        .interrupt_priority = APP_IRQ_PRIORITY_THREAD,
+        .clear_bus_init     = false
+    };
+
+    init_params.twi_addr                = VL53L0X_ADDR;
+    init_params.pin_int                 = VL53L0X_INT;
+    init_params.p_twi_instance          = p_twi_instance;
+    init_params.p_twi_cfg               = &twi_config;
+    init_params.evt_handler             = drv_range_evt_handler;
+    init_params.mode                    = DRV_PRESENCE_MODE_CONTINUOUS;
+
+    return drv_range_init(&init_params);
+}
+
 uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t * p_params)
 {
     uint32_t err_code;
@@ -298,7 +367,20 @@ uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t 
     err_code = presence_sensor_init(p_params->p_twi_instance);
     APP_ERROR_CHECK(err_code);
 
+    /**@brief Init drivers */
+    err_code = range_sensor_init(p_params->p_twi_instance);
+    APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("*** here here ****\r\n");
+
+    err_code = drv_range_sample();
+    APP_ERROR_CHECK(err_code);
+
     /**@brief Init application timers */
     err_code = app_timer_create(&presence_timer_id, APP_TIMER_MODE_REPEATED, presence_timeout_handler);
+    APP_ERROR_CHECK(err_code);
+
+    /**@brief Init application timers */
+    err_code = app_timer_create(&range_timer_id, APP_TIMER_MODE_REPEATED, range_timeout_handler);
     APP_ERROR_CHECK(err_code);
 }

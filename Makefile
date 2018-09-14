@@ -91,6 +91,8 @@ SRC_FILES += \
   $(PROJ_DIR)/source/ble_services/ble_dcs.c \
   $(PROJ_DIR)/source/ble_services/ble_dds.c \
   $(PROJ_DIR)/source/drivers/drv_presence.c \
+  $(PROJ_DIR)/source/drivers/drv_range.c \
+  $(PROJ_DIR)/source/drivers/drv_vl53l0x.c \
   $(PROJ_DIR)/source/drivers/drv_ak9750.c \
   $(PROJ_DIR)/source/util/twi_manager.c \
 

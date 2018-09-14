@@ -93,7 +93,7 @@ static uint32_t reg_write(uint8_t reg_addr, uint8_t reg_val)
     return NRF_SUCCESS;
 }
 
-ret_code_t i2c_read(uint8_t regAddr, uint8_t * pdata, size_t size)
+static ret_code_t i2c_read(uint8_t regAddr, uint8_t * pdata, size_t size)
 {
     ret_code_t ret;
     do

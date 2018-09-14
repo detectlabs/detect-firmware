@@ -83,6 +83,9 @@ extern "C" {
 #define AK9750_ADDR 0x64
 #define AK9750_INT 22
 
+#define VL53L0X_ADDR 0x29
+#define VL53L0X_INT 20
+
 
 // Low frequency clock source to be used by the SoftDevice
 #define NRF_CLOCK_LFCLKSRC      {.source        = NRF_CLOCK_LF_SRC_XTAL,            \
