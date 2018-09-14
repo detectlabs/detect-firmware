@@ -2,6 +2,7 @@
 #include "twi_manager.h"
 #include "nrf_log.h"
 #include "nrf_delay.h"
+#include "ble_dds.h"
 
 #define ECNTL1              0x1C            // Mode setting/ Digital Filter Cutoff Frequency (Fc) setting (Read / Write registers)
 #define CNTL2               0x1D            // Soft Reset (Read / Write Registers)
@@ -232,7 +233,7 @@ uint32_t drv_ak9750_one_shot(void)
     return NRF_SUCCESS;
 }
 
-uint32_t drv_ak9750_get_irs(int16_t *ir1, int16_t *ir2, int16_t *ir3, int16_t *ir4)
+uint32_t drv_ak9750_get_irs(ble_dds_presence_t * presence)
 {
     uint32_t err_code;
     uint8_t ir1_l;
@@ -253,38 +254,38 @@ uint32_t drv_ak9750_get_irs(int16_t *ir1, int16_t *ir2, int16_t *ir3, int16_t *i
     // IR1
     err_code = reg_read(IR1L, &ir1_l);
     RETURN_IF_ERROR(err_code);
-    NRF_LOG_INFO("IR1L %d \r\n", ir1_l);
+    //NRF_LOG_INFO("IR1L %d \r\n", ir1_l);
 
     err_code = reg_read(IR1H, &ir1_h);
     RETURN_IF_ERROR(err_code);
-    NRF_LOG_INFO("IR1H %d \r\n", ir1_h);
+    //NRF_LOG_INFO("IR1H %d \r\n", ir1_h);
 
     // IR2
     err_code = reg_read(IR2L, &ir2_l);
     RETURN_IF_ERROR(err_code);
-    NRF_LOG_INFO("IR2L %d \r\n", ir2_l);
+    //NRF_LOG_INFO("IR2L %d \r\n", ir2_l);
 
     err_code = reg_read(IR2H, &ir2_h);
     RETURN_IF_ERROR(err_code);
-    NRF_LOG_INFO("IR2H %d \r\n", ir2_h);
+    //NRF_LOG_INFO("IR2H %d \r\n", ir2_h);
 
     // IR3
     err_code = reg_read(IR3L, &ir3_l);
     RETURN_IF_ERROR(err_code);
-    NRF_LOG_INFO("IR3L %d \r\n", ir3_l);
+    //NRF_LOG_INFO("IR3L %d \r\n", ir3_l);
 
     err_code = reg_read(IR3H, &ir3_h);
     RETURN_IF_ERROR(err_code);
-    NRF_LOG_INFO("IR3H %d \r\n", ir3_h);
+    //NRF_LOG_INFO("IR3H %d \r\n", ir3_h);
 
     // IR4
     err_code = reg_read(IR4L, &ir4_l);
     RETURN_IF_ERROR(err_code);
-    NRF_LOG_INFO("IR4L %d \r\n", ir4_l);
+    //NRF_LOG_INFO("IR4L %d \r\n", ir4_l);
 
     err_code = reg_read(IR4H, &ir4_h);
     RETURN_IF_ERROR(err_code);
-    NRF_LOG_INFO("IR4H %d \r\n", ir4_h);
+    //NRF_LOG_INFO("IR4H %d \r\n", ir4_h);
 
     // Read Dummy Reg
     err_code = reg_read(ST1, &dummy);
@@ -292,6 +293,18 @@ uint32_t drv_ak9750_get_irs(int16_t *ir1, int16_t *ir2, int16_t *ir3, int16_t *i
 
     err_code = reg_read(ST2, &dummy);
     RETURN_IF_ERROR(err_code);
+
+    presence->ir1 = ir1_l + (ir1_h << 8);
+    NRF_LOG_RAW_INFO("\nIR1: %d  \n", presence->ir1);
+
+    presence->ir2 = ir2_l + (ir2_h << 8);
+    NRF_LOG_RAW_INFO("IR2: %d  \n", presence->ir2);
+
+    presence->ir3 = ir3_l + (ir3_h << 8);
+    NRF_LOG_RAW_INFO("IR3: %d  \n", presence->ir3);
+
+    presence->ir4 = ir4_l + (ir4_h << 8);
+    NRF_LOG_RAW_INFO("IR4: %d  \n", presence->ir4);
 
     return NRF_SUCCESS;
 }

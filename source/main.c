@@ -301,7 +301,7 @@ static void detect_init(void)
     m_ble_init_t           ble_params;
 
     /**@brief Initialize the TWI manager. */
-    err_code = twi_manager_init(APP_IRQ_PRIORITY_LOWEST);
+    err_code = twi_manager_init(APP_IRQ_PRIORITY_HIGHEST);
     APP_ERROR_CHECK(err_code);
 
     /**@brief Initialize detection module. */

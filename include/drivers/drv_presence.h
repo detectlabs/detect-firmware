@@ -3,6 +3,7 @@
 
 #include "nrf_drv_twi.h"
 #include <stdint.h>
+#include "ble_dds.h"
 
 /**@brief Pressure driver event types.
  */
@@ -85,7 +86,7 @@ uint32_t drv_presence_mode_set(drv_presence_mode_t mode);
  *
  * @retval Pressure data.
  */
-uint32_t drv_presence_get(void);
+uint32_t drv_presence_get(ble_dds_presence_t * presence);
 
 /**@brief Function for starting the sampling.
  *

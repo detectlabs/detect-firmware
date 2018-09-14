@@ -637,6 +637,14 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
     ble_dcs_on_ble_evt(&m_dcs, p_ble_evt);
 
+    for (uint32_t i = 0; i < m_service_num; i++)
+    {
+        if (m_service_handles[i].ble_evt_cb != NULL)
+        {
+            m_service_handles[i].ble_evt_cb(p_ble_evt);
+        }
+    }
+
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_DISCONNECTED:

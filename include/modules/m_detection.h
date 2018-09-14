@@ -19,10 +19,10 @@ typedef struct
     .range_interval_ms    = 1000,                      \
     .threshold_config     =                            \
     {                                                  \
-        .eth13h            = 100,                       \
-        .eth13l            = 100,                       \
-        .eth24h            = 100,                       \
-        .eth24l            = 100                        \
+        .eth13h            = 100,                      \
+        .eth13l            = 100,                      \
+        .eth24h            = 100,                      \
+        .eth24l            = 100                       \
     },                                                 \
     .sample_mode          = SAMPLE_MODE_CONTINUOUS     \
 }

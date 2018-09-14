@@ -137,6 +137,28 @@ uint32_t drv_presence_enable(void)
     return NRF_SUCCESS;
 }
 
+/**@brief Uninitialize the GPIO tasks and events system.
+ */
+static void gpiote_uninit(uint32_t pin)
+{
+    nrf_drv_gpiote_in_uninit(pin);
+}
+
+uint32_t drv_presence_disable(void)
+{
+    uint32_t err_code;
+
+    if (m_drv_presence.enabled == false)
+    {
+        return NRF_SUCCESS;
+    }
+    m_drv_presence.enabled = false;
+
+    gpiote_uninit(m_drv_presence.cfg.pin_int);
+
+    return NRF_SUCCESS;
+}
+
 uint32_t drv_presence_sample(void)
 {
     uint32_t err_code;
@@ -153,18 +175,14 @@ uint32_t drv_presence_sample(void)
     return NRF_SUCCESS;
 }
 
-uint32_t drv_presence_get(void)
+uint32_t drv_presence_get(ble_dds_presence_t * presence)
 {
     uint32_t err_code;
-    int16_t ir1;
-    int16_t ir2;
-    int16_t ir3;
-    int16_t ir4;
 
     err_code = drv_ak9750_open(&m_drv_presence.cfg);
     APP_ERROR_CHECK(err_code);
 
-    err_code = drv_ak9750_get_irs(&ir1, &ir2, &ir3, &ir4);
+    err_code = drv_ak9750_get_irs(presence);
     APP_ERROR_CHECK(err_code);
 
     err_code = drv_ak9750_close();
