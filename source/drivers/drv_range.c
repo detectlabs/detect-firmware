@@ -10,16 +10,72 @@
  */
 typedef struct
 {
-    drv_vl53l0x_twi_cfg_t            cfg;           ///< TWI configuraion.
+    drv_vl53l0x_twi_cfg_t            cfg;   ///< TWI configuraion.
     drv_range_evt_handler_t  evt_handler;   ///< Event handler called by gpiote_evt_sceduled.
-    drv_range_mode_t                mode;          ///< Mode of operation.
-    bool                         enabled;       ///< Driver enabled.
+    drv_range_mode_t                mode;   ///< Mode of operation.
+    bool                         enabled;   ///< Driver enabled.
 } drv_range_t;
 
 /**@brief Stored configuration.
  */
 static drv_range_t m_drv_range;
 
+/**@brief GPIOTE sceduled handler, executed in main-context.
+ */
+static void gpiote_evt_sceduled(void * p_event_data, uint16_t event_size)
+{
+    // Data ready
+    drv_range_evt_t evt;
+    evt.type = DRV_RANGE_EVT_DATA;
+    evt.mode = DRV_RANGE_MODE_CONTINUOUS;
+
+    m_drv_range.evt_handler(&evt);
+}
+
+/**@brief GPIOTE event handler, executed in interrupt-context.
+ */
+static void gpiote_evt_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+{
+    uint32_t err_code;
+
+        NRF_LOG_INFO("************************ Ranger Interuupt ****************************\r\n");
+
+
+    //if ((pin == m_drv_presence.cfg.pin_int) && (nrf_gpio_pin_read(m_drv_presence.cfg.pin_int) == 0))
+    //{
+        err_code = app_sched_event_put(0, 0, gpiote_evt_sceduled);
+        APP_ERROR_CHECK(err_code);
+    //}
+}
+
+/**@brief Initialize the GPIO tasks and events system to catch pin data ready interrupts.
+ */
+static uint32_t gpiote_init(uint32_t pin)
+{
+    uint32_t err_code;
+
+    if (!nrf_drv_gpiote_is_init())
+    {
+        err_code = nrf_drv_gpiote_init();
+        RETURN_IF_ERROR(err_code);
+    }
+
+    // nrf_drv_gpiote_in_config_t gpiote_in_config;
+    // gpiote_in_config.is_watcher  = false;
+    // gpiote_in_config.hi_accuracy = false;
+    // gpiote_in_config.pull        = NRF_GPIO_PIN_NOPULL;
+    // gpiote_in_config.sense       = NRF_GPIOTE_POLARITY_TOGGLE;
+
+    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
+    in_config.pull = GPIO_PIN_CNF_PULL_Disabled;
+
+    err_code = nrf_drv_gpiote_in_init(pin, &in_config, gpiote_evt_handler);
+    RETURN_IF_ERROR(err_code);
+
+    nrf_drv_gpiote_in_event_enable(pin, true);
+
+    return NRF_SUCCESS;
+}
 
 uint32_t drv_range_init(drv_range_init_t * p_params)
 {
@@ -59,6 +115,45 @@ uint32_t drv_range_init(drv_range_init_t * p_params)
     return NRF_SUCCESS;
 }
 
+uint32_t drv_range_enable(void)
+{
+    uint32_t err_code;
+
+    if (m_drv_range.enabled)
+    {
+        return NRF_SUCCESS;
+    }
+
+    err_code = gpiote_init(m_drv_range.cfg.pin_int);
+    RETURN_IF_ERROR(err_code);
+
+    m_drv_range.enabled = true;
+
+    return NRF_SUCCESS;
+}
+
+/**@brief Uninitialize the GPIO tasks and events system.
+ */
+static void gpiote_uninit(uint32_t pin)
+{
+    nrf_drv_gpiote_in_uninit(pin);
+}
+
+uint32_t drv_range_disable(void)
+{
+    uint32_t err_code;
+
+    if (m_drv_range.enabled == false)
+    {
+        return NRF_SUCCESS;
+    }
+    m_drv_range.enabled = false;
+
+    gpiote_uninit(m_drv_range.cfg.pin_int);
+
+    return NRF_SUCCESS;
+}
+
 uint32_t drv_range_sample(void)
 {
     uint32_t err_code;
@@ -69,24 +164,42 @@ uint32_t drv_range_sample(void)
     // err_code = drv_ak9750_one_shot();
     // RETURN_IF_ERROR(err_code);
 
-    NRF_LOG_INFO("*** Range Sample ****\r\n");
+    NRF_LOG_INFO("*** Range Star Sample ****\r\n");
 
-    vl53l0x_init(true);
-    // lower the return signal rate limit (default is 0.25 MCPS)
-    setSignalRateLimit(0.1);
-    // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-    setVcselPulsePeriod(VcselPeriodPreRange, 18);
-    setVcselPulsePeriod(VcselPeriodFinalRange, 14);
+    // vl53l0x_init(true);
+    // // lower the return signal rate limit (default is 0.25 MCPS)
+    // setSignalRateLimit(0.1);
+    // // increase laser pulse periods (defaults are 14 and 10 PCLKs)
+    // setVcselPulsePeriod(VcselPeriodPreRange, 18);
+    // setVcselPulsePeriod(VcselPeriodFinalRange, 14);
 
-    setMeasurementTimingBudget(20000);
+    // setMeasurementTimingBudget(20000);
 
-    nrf_delay_ms(200);
+    // nrf_delay_ms(200);
 
     startRangeSingleMillimeters();
-    NRF_LOG_RAW_INFO("\nRange: %d  \n", readRangeContinuousMillimeters());
+    //NRF_LOG_RAW_INFO("\nRange: %d  \n", readRangeContinuousMillimeters());
+
+    NRF_LOG_INFO("*** Range End Sample ****\r\n");
 
     err_code = drv_vl53l0x_close();
     RETURN_IF_ERROR(err_code);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t drv_range_get(ble_dds_range_t * range)
+{
+    uint32_t err_code;
+
+    err_code = drv_vl53l0x_open(&m_drv_range.cfg);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_vl53l0x_get_range(range);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_vl53l0x_close();
+    APP_ERROR_CHECK(err_code);
 
     return NRF_SUCCESS;
 }

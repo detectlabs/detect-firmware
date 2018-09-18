@@ -53,8 +53,8 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
             {
                 ble_dds_range_t range;
 
-                // drv_range_get(&range);
-                // (void)ble_dds_range_set(&m_dds, &range);
+                drv_range_get(&range);
+                (void)ble_dds_range_set(&m_dds, &range);
                 NRF_LOG_INFO("********RANGE EVENT!!!!! \r\n");
 
             }
@@ -110,6 +110,18 @@ static uint32_t presence_stop(void)
     return drv_presence_disable();
 }
 
+/**@brief Function for stopping pressure sampling.
+ */
+static uint32_t range_stop(void)
+{
+    uint32_t err_code;
+
+    err_code = app_timer_stop(range_timer_id);
+    APP_ERROR_CHECK(err_code);
+
+    return drv_range_disable();
+}
+
 uint32_t m_detection_stop(void)
 {
     uint32_t err_code;
@@ -132,9 +144,32 @@ static uint32_t presence_start(void)
     err_code = drv_presence_sample();
     APP_ERROR_CHECK(err_code);
 
+     NRF_LOG_RAW_INFO("\r########## presence_intervale_ms: %d  \n", m_default_config.presence_interval_ms);
+
+
     return app_timer_start(presence_timer_id,
                            APP_TIMER_TICKS(m_p_config->presence_interval_ms),
                            NULL);                     
+}
+
+/**@brief Function for starting pressure sampling.
+ */
+static uint32_t range_start(void)
+{
+    uint32_t err_code;
+
+    err_code = drv_range_enable();
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_range_sample();
+    APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_RAW_INFO("\r########## range_intervale_ms: %d  \n", m_default_config.range_interval_ms);
+
+
+    return app_timer_start(range_timer_id,
+                           APP_TIMER_TICKS(m_p_config->range_interval_ms),
+                           NULL);                 
 }
 
 static uint32_t config_verify(ble_dds_config_t * p_config)
@@ -167,6 +202,7 @@ static uint32_t config_apply(ble_dds_config_t * p_config)
     VERIFY_PARAM_NOT_NULL(p_config);
 
     (void)presence_stop();
+    (void)range_stop();
 
      if ((p_config->presence_interval_ms > 0) &&
         (m_dds.is_presence_notif_enabled) )
@@ -233,20 +269,19 @@ static void ble_dds_evt_handler( ble_dds_t        * p_dds,
             }
             break;
 
-        // case BLE_TES_EVT_NOTIF_RANGE:
-        //     NRF_LOG_DEBUG("tes_evt_handler: BLE_TES_EVT_NOTIF_RANGE: %d\r\n", p_tes->is_range_notif_enabled);
-        //     if (p_tes->is_range_notif_enabled)
-        //     {
-        //         err_code = range_start();
-        //         APP_ERROR_CHECK(err_code);
-        //     }
-        //     else
-        //     {
-        //         err_code = range_stop();
-        //         APP_ERROR_CHECK(err_code);
-        //     }
-        //     break;
-
+        case BLE_DDS_EVT_NOTIF_RANGE:
+            NRF_LOG_DEBUG("tes_evt_handler: BLE_TES_EVT_NOTIF_RANGE: %d\r\n", p_dds->is_range_notif_enabled);
+            if (p_dds->is_range_notif_enabled)
+            {
+                err_code = range_start();
+                APP_ERROR_CHECK(err_code);
+            }
+            else
+            {
+                err_code = range_stop();
+                APP_ERROR_CHECK(err_code);
+            }
+            break;
         case BLE_DDS_EVT_CONFIG_RECEIVED:
         {
             NRF_LOG_DEBUG("dds_evt_handler: BLE_DDS_EVT_CONFIG_RECEIVED: %d\r\n", length);
@@ -369,11 +404,6 @@ uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t 
 
     /**@brief Init drivers */
     err_code = range_sensor_init(p_params->p_twi_instance);
-    APP_ERROR_CHECK(err_code);
-
-    NRF_LOG_INFO("*** here here ****\r\n");
-
-    err_code = drv_range_sample();
     APP_ERROR_CHECK(err_code);
 
     /**@brief Init application timers */

@@ -1011,6 +1011,7 @@ int16_t readRangeContinuousMillimeters(void)
     iTimeout++;
     //usleep(5000);
     nrf_delay_ms(1);
+    NRF_LOG_RAW_INFO("\nVL Read Ranging Timeout\n");
     if (iTimeout > 100) { 
       NRF_LOG_RAW_INFO("\nVL Read Ranging Timeout\n");
       did_timeout = true;
@@ -1431,10 +1432,29 @@ uint32_t drv_vl53l0x_init()
 
     DRV_CFG_CHECK(m_vl53l0x.p_cfg);
 
-    //drv_vl53l0x_reset();
+    vl53l0x_init(true);
+    // lower the return signal rate limit (default is 0.25 MCPS)
+    setSignalRateLimit(0.1);
+    // increase laser pulse periods (defaults are 14 and 10 PCLKs)
+    setVcselPulsePeriod(VcselPeriodPreRange, 18);
+    setVcselPulsePeriod(VcselPeriodFinalRange, 14);
+
+    setMeasurementTimingBudget(20000);
+
+    nrf_delay_ms(200);
 
     return NRF_SUCCESS;
 }
+
+uint32_t drv_vl53l0x_get_range(ble_dds_range_t * range)
+{
+    range->range = readRangeContinuousMillimeters();
+
+    NRF_LOG_RAW_INFO("\nRange: %d  \n", range->range);
+
+    return NRF_SUCCESS;
+}
+   
 
 uint32_t drv_vl53l0x_close(void)
 {

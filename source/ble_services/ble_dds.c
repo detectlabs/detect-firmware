@@ -149,6 +149,33 @@ uint32_t ble_dds_presence_set(ble_dds_t * p_tes, ble_dds_presence_t * p_data)
     return sd_ble_gatts_hvx(p_tes->conn_handle, &hvx_params);
 }
 
+uint32_t ble_dds_range_set(ble_dds_t * p_tes, ble_dds_range_t * p_data)
+{
+    ble_gatts_hvx_params_t hvx_params;
+    uint16_t               length = sizeof(ble_dds_range_t);
+
+    VERIFY_PARAM_NOT_NULL(p_tes);
+
+    if ((p_tes->conn_handle == BLE_CONN_HANDLE_INVALID) || (!p_tes->is_range_notif_enabled))
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+    if (length > BLE_DDS_MAX_DATA_LEN)
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    memset(&hvx_params, 0, sizeof(hvx_params));
+
+    hvx_params.handle = p_tes->range_handles.value_handle;
+    hvx_params.p_data = (uint8_t *)p_data;
+    hvx_params.p_len  = &length;
+    hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+
+    return sd_ble_gatts_hvx(p_tes->conn_handle, &hvx_params);
+}
+
 /**@brief Function for adding pressure characteristic.
  *
  * @param[in] p_tes       Thingy Environment Service structure.
@@ -200,12 +227,71 @@ static uint32_t presence_char_add(ble_dds_t * p_dds, const ble_dds_init_t * p_dd
     attr_char_value.init_len  = sizeof(ble_dds_presence_t);
     attr_char_value.init_offs = 0;
     attr_char_value.p_value   = (uint8_t *)p_dds_init->p_init_presence;
-    attr_char_value.max_len   = sizeof(ble_dds_presence_t);;
+    attr_char_value.max_len   = sizeof(ble_dds_presence_t);
 
     return sd_ble_gatts_characteristic_add(p_dds->service_handle,
                                            &char_md,
                                            &attr_char_value,
                                            &p_dds->presence_handles);
+}
+
+/**@brief Function for adding pressure characteristic.
+ *
+ * @param[in] p_tes       Thingy Environment Service structure.
+ * @param[in] p_tes_init  Information needed to initialize the service.
+ *
+ * @return NRF_SUCCESS on success, otherwise an error code.
+ */
+static uint32_t range_char_add(ble_dds_t * p_dds, const ble_dds_init_t * p_dds_init)
+{
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_md_t cccd_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_uuid_t          ble_uuid;
+    ble_gatts_attr_md_t attr_md;
+
+    memset(&cccd_md, 0, sizeof(cccd_md));
+
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.write_perm);
+
+    cccd_md.vloc = BLE_GATTS_VLOC_STACK;
+
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.notify = 1;
+    char_md.p_char_user_desc  = NULL;
+    char_md.p_char_pf         = NULL;
+    char_md.p_user_desc_md    = NULL;
+    char_md.p_cccd_md         = &cccd_md;
+    char_md.p_sccd_md         = NULL;
+
+    ble_uuid.type = p_dds->uuid_type;
+    ble_uuid.uuid = BLE_UUID_DDS_RANGE_CHAR;
+
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.write_perm);
+
+    attr_md.vloc    = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth = 0;
+    attr_md.wr_auth = 0;
+    attr_md.vlen    = 0;
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = sizeof(ble_dds_range_t);
+    attr_char_value.init_offs = 0;
+    attr_char_value.p_value   = (uint8_t *)p_dds_init->p_init_range;
+    attr_char_value.max_len   = sizeof(ble_dds_range_t);
+
+    return sd_ble_gatts_characteristic_add(p_dds->service_handle,
+                                           &char_md,
+                                           &attr_char_value,
+                                           &p_dds->range_handles);
 }
 
 uint32_t ble_dds_init(ble_dds_t * p_dds, const ble_dds_init_t * p_dds_init)
@@ -240,9 +326,9 @@ uint32_t ble_dds_init(ble_dds_t * p_dds, const ble_dds_init_t * p_dds_init)
     err_code = presence_char_add(p_dds, p_dds_init);
     VERIFY_SUCCESS(err_code);
 
-    // // Add the pressure Characteristic.
-    // err_code = range_char_add(p_dds, p_dds_init);
-    // VERIFY_SUCCESS(err_code);
+    // Add the pressure Characteristic.
+    err_code = range_char_add(p_dds, p_dds_init);
+    VERIFY_SUCCESS(err_code);
 
     // // Add the config Characteristic.
     // err_code = config_char_add(p_dds, p_dds_init);

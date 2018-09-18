@@ -29,7 +29,7 @@ typedef PACKED( struct
 
 typedef PACKED( struct
 {
-    uint16_t range;
+    int16_t range;
 }) ble_dds_range_t;
 
 typedef enum
@@ -48,10 +48,10 @@ typedef PACKED( struct
 
 typedef PACKED( struct
 {
-    uint16_t                presence_interval_ms;
     uint16_t                   range_interval_ms;
-    ble_dds_sample_mode_t            sample_mode;
+    uint16_t                presence_interval_ms;
     ble_dds_threshold_config_t  threshold_config;
+    ble_dds_sample_mode_t            sample_mode;
 }) ble_dds_config_t;
 
 #define BLE_DDS_CONFIG_PRESENCE_INT_MIN       50
