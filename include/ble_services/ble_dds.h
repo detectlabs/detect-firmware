@@ -74,8 +74,8 @@ typedef struct ble_dds_s ble_dds_t;
 /**@brief Detect Detection Service event handler type. */
 typedef void (*ble_dds_evt_handler_t) (ble_dds_t        * p_tes,
                                        ble_dds_evt_type_t evt_type,
-                                       uint8_t          * p_data,
-                                       uint16_t           length);
+                                       uint8_t         const * p_data,
+                                       uint16_t        const    length);
 
 /**@brief Detect Detection Service initialization structure.
  *
@@ -87,7 +87,7 @@ typedef struct
     ble_dds_presence_t * p_init_presence;
     ble_dds_range_t    * p_init_range;
     ble_dds_config_t      * p_init_config;
-    ble_dds_evt_handler_t   evt_handler; /**< Event handler to be called for handling received data. */
+    ble_dds_evt_handler_t     evt_handler; /**< Event handler to be called for handling received data. */
 } ble_dds_init_t;
 
 /**@brief Detect Detection Service structure.
@@ -106,6 +106,12 @@ struct ble_dds_s
     bool                     is_range_notif_enabled;    /**< Variable to indicate if the peer has enabled notification of the characteristic.*/
     ble_dds_evt_handler_t    evt_handler;                  /**< Event handler to be called for handling received data. */
 };
+
+void ble_dds_on_ble_evt(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt);
+
+uint32_t ble_dds_presence_set(ble_dds_t * p_tes, ble_dds_presence_t * p_data);
+
+uint32_t ble_dds_range_set(ble_dds_t * p_tes, ble_dds_range_t * p_data);
 
 uint32_t ble_dds_init(ble_dds_t * p_dds, const ble_dds_init_t * p_dds_init);
 

@@ -19,7 +19,7 @@
  * @param[in] p_tes     Thingy Environment Service structure.
  * @param[in] p_ble_evt Pointer to the event received from BLE stack.
  */
-static void on_connect(ble_dds_t * p_dds, ble_evt_t * p_ble_evt)
+static void on_connect(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
 {
     p_dds->conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
 }
@@ -30,7 +30,7 @@ static void on_connect(ble_dds_t * p_dds, ble_evt_t * p_ble_evt)
  * @param[in] p_tes     Thingy Environment Service structure.
  * @param[in] p_ble_evt Pointer to the event received from BLE stack.
  */
-static void on_disconnect(ble_dds_t * p_dds, ble_evt_t * p_ble_evt)
+static void on_disconnect(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
 {
     UNUSED_PARAMETER(p_ble_evt);
     p_dds->conn_handle = BLE_CONN_HANDLE_INVALID;
@@ -41,9 +41,9 @@ static void on_disconnect(ble_dds_t * p_dds, ble_evt_t * p_ble_evt)
  * @param[in] p_tes     Thingy Environment Service structure.
  * @param[in] p_ble_evt Pointer to the event received from BLE stack.
  */
-static void on_write(ble_dds_t * p_dds, ble_evt_t * p_ble_evt)
+static void on_write(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
 {
-    ble_gatts_evt_write_t * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
+    ble_gatts_evt_write_t const * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
 
     NRF_LOG_INFO("WRITE HANDLER!!!!! \r\n");
 
@@ -91,7 +91,72 @@ static void on_write(ble_dds_t * p_dds, ble_evt_t * p_ble_evt)
     }
 }
 
-void ble_dds_on_ble_evt(ble_dds_t * p_dds, ble_evt_t * p_ble_evt)
+static void on_authorize_req(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
+{
+    ble_gatts_evt_rw_authorize_request_t const * p_evt_rw_authorize_request = &p_ble_evt->evt.gatts_evt.params.authorize_request;
+    uint32_t err_code;
+
+    if (p_evt_rw_authorize_request->type  == BLE_GATTS_AUTHORIZE_TYPE_WRITE)
+    {
+        if (p_evt_rw_authorize_request->request.write.handle == p_dds->config_handles.value_handle)
+        {
+            ble_gatts_rw_authorize_reply_params_t rw_authorize_reply;
+            bool                                  valid_data = true;
+
+            // Check for valid data
+            if(p_evt_rw_authorize_request->request.write.len != sizeof(ble_dds_config_t))
+            {
+                valid_data = false;
+            }
+            else
+            {
+                ble_dds_config_t * p_config = (ble_dds_config_t *)p_evt_rw_authorize_request->request.write.data;
+
+                if ( (p_config->presence_interval_ms < BLE_DDS_CONFIG_PRESENCE_INT_MIN)           ||
+                    (p_config->presence_interval_ms > BLE_DDS_CONFIG_PRESENCE_INT_MAX)            ||
+                    (p_config->range_interval_ms < BLE_DDS_CONFIG_RANGE_INT_MIN)                  ||
+                    (p_config->range_interval_ms > BLE_DDS_CONFIG_RANGE_INT_MAX)                  ||
+                    (p_config->threshold_config.eth13h < BLE_DDS_CONFIG_THRESHOLD_MIN)            ||
+                    (p_config->threshold_config.eth13l > BLE_DDS_CONFIG_THRESHOLD_MAX)            ||
+                    (p_config->threshold_config.eth24h < BLE_DDS_CONFIG_THRESHOLD_MIN)            ||
+                    ((int)p_config->threshold_config.eth24l > (int)BLE_DDS_CONFIG_THRESHOLD_MAX))
+                {
+                    valid_data = false;
+                }
+            }
+
+            rw_authorize_reply.type = BLE_GATTS_AUTHORIZE_TYPE_WRITE;
+
+            if (valid_data)
+            {
+                rw_authorize_reply.params.write.update      = 1;
+                rw_authorize_reply.params.write.gatt_status = BLE_GATT_STATUS_SUCCESS;
+                rw_authorize_reply.params.write.p_data      = p_evt_rw_authorize_request->request.write.data;
+                rw_authorize_reply.params.write.len         = p_evt_rw_authorize_request->request.write.len;
+                rw_authorize_reply.params.write.offset      = p_evt_rw_authorize_request->request.write.offset;
+            }
+            else
+            {
+                rw_authorize_reply.params.write.update      = 0;
+                rw_authorize_reply.params.write.gatt_status = BLE_GATT_STATUS_ATTERR_WRITE_NOT_PERMITTED;
+            }
+
+            err_code = sd_ble_gatts_rw_authorize_reply(p_ble_evt->evt.gatts_evt.conn_handle,
+                                                       &rw_authorize_reply);
+            APP_ERROR_CHECK(err_code);
+
+            if ( valid_data && (p_dds->evt_handler != NULL))
+            {
+                p_dds->evt_handler(p_dds,
+                                   BLE_DDS_EVT_CONFIG_RECEIVED,
+                                   p_evt_rw_authorize_request->request.write.data,
+                                   p_evt_rw_authorize_request->request.write.len);
+            }
+        }
+    }
+}
+
+void ble_dds_on_ble_evt(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
 {
     if ((p_dds == NULL) || (p_ble_evt == NULL))
     {
@@ -113,7 +178,7 @@ void ble_dds_on_ble_evt(ble_dds_t * p_dds, ble_evt_t * p_ble_evt)
             break;
 
         case BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST:
-            //on_authorize_req(p_tes, p_ble_evt);
+            on_authorize_req(p_dds, p_ble_evt);
             break;
 
         default:
@@ -294,6 +359,59 @@ static uint32_t range_char_add(ble_dds_t * p_dds, const ble_dds_init_t * p_dds_i
                                            &p_dds->range_handles);
 }
 
+/**@brief Function for adding configuration characteristic.
+ *
+ * @param[in] p_tes       Thingy Environment Service structure.
+ * @param[in] p_tes_init  Information needed to initialize the service.
+ *
+ * @return NRF_SUCCESS on success, otherwise an error code.
+ */
+static uint32_t config_char_add(ble_dds_t * p_tes, const ble_dds_init_t * p_dds_init)
+{
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_uuid_t          ble_uuid;
+    ble_gatts_attr_md_t attr_md;
+
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.read          = 1;
+    char_md.char_props.write         = 1;
+    char_md.char_props.write_wo_resp = 0;
+    char_md.p_char_user_desc         = NULL;
+    char_md.p_char_pf                = NULL;
+    char_md.p_user_desc_md           = NULL;
+    char_md.p_cccd_md                = NULL;
+    char_md.p_sccd_md                = NULL;
+
+    ble_uuid.type = p_tes->uuid_type;
+    ble_uuid.uuid = BLE_UUID_DDS_CONFIG_CHAR;
+
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
+
+    attr_md.vloc    = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth = 0;
+    attr_md.wr_auth = 1;
+    attr_md.vlen    = 0;
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = sizeof(ble_dds_config_t);
+    attr_char_value.init_offs = 0;
+    attr_char_value.p_value   = (uint8_t *)p_dds_init->p_init_config;
+    attr_char_value.max_len   = sizeof(ble_dds_config_t);
+
+    return sd_ble_gatts_characteristic_add(p_tes->service_handle,
+                                           &char_md,
+                                           &attr_char_value,
+                                           &p_tes->config_handles);
+}
+
 uint32_t ble_dds_init(ble_dds_t * p_dds, const ble_dds_init_t * p_dds_init)
 {
     uint32_t      err_code;
@@ -330,9 +448,9 @@ uint32_t ble_dds_init(ble_dds_t * p_dds, const ble_dds_init_t * p_dds_init)
     err_code = range_char_add(p_dds, p_dds_init);
     VERIFY_SUCCESS(err_code);
 
-    // // Add the config Characteristic.
-    // err_code = config_char_add(p_dds, p_dds_init);
-    // VERIFY_SUCCESS(err_code);
+    // Add the config Characteristic.
+    err_code = config_char_add(p_dds, p_dds_init);
+    VERIFY_SUCCESS(err_code);
 
     return NRF_SUCCESS;
 }

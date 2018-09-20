@@ -1,4 +1,5 @@
 #include "m_detection.h"
+#include "m_detection_flash.h"
 #include "detect_board.h"
 #include "drv_presence.h"
 #include "drv_range.h"
@@ -221,7 +222,7 @@ static uint32_t config_apply(ble_dds_config_t * p_config)
  *
  * @param[in] p_ble_evt    Pointer to the BLE event.
  */
-static void detection_on_ble_evt(ble_evt_t * p_ble_evt)
+static void detection_on_ble_evt(ble_evt_t const * p_ble_evt)
 {
     NRF_LOG_INFO("ble_dds_on_ble_evt!!!!! \r\n");
 
@@ -248,7 +249,7 @@ static void detection_on_ble_evt(ble_evt_t * p_ble_evt)
  */
 static void ble_dds_evt_handler( ble_dds_t        * p_dds,
                                  ble_dds_evt_type_t evt_type,
-                                 uint8_t          * p_data,
+                                 uint8_t         const * p_data,
                                  uint16_t           length)
 {
     uint32_t err_code;
@@ -413,4 +414,8 @@ uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t 
     /**@brief Init application timers */
     err_code = app_timer_create(&range_timer_id, APP_TIMER_MODE_REPEATED, range_timeout_handler);
     APP_ERROR_CHECK(err_code);
+
+    drv_range_sample();
+
+    return NRF_SUCCESS;
 }

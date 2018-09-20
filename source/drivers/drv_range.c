@@ -38,9 +38,6 @@ static void gpiote_evt_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t a
 {
     uint32_t err_code;
 
-        NRF_LOG_INFO("************************ Ranger Interuupt ****************************\r\n");
-
-
     //if ((pin == m_drv_presence.cfg.pin_int) && (nrf_gpio_pin_read(m_drv_presence.cfg.pin_int) == 0))
     //{
         err_code = app_sched_event_put(0, 0, gpiote_evt_sceduled);
@@ -59,12 +56,6 @@ static uint32_t gpiote_init(uint32_t pin)
         err_code = nrf_drv_gpiote_init();
         RETURN_IF_ERROR(err_code);
     }
-
-    // nrf_drv_gpiote_in_config_t gpiote_in_config;
-    // gpiote_in_config.is_watcher  = false;
-    // gpiote_in_config.hi_accuracy = false;
-    // gpiote_in_config.pull        = NRF_GPIO_PIN_NOPULL;
-    // gpiote_in_config.sense       = NRF_GPIOTE_POLARITY_TOGGLE;
 
     nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
     in_config.pull = GPIO_PIN_CNF_PULL_Disabled;
@@ -141,8 +132,6 @@ static void gpiote_uninit(uint32_t pin)
 
 uint32_t drv_range_disable(void)
 {
-    uint32_t err_code;
-
     if (m_drv_range.enabled == false)
     {
         return NRF_SUCCESS;
@@ -161,26 +150,8 @@ uint32_t drv_range_sample(void)
     err_code = drv_vl53l0x_open(&m_drv_range.cfg);
     RETURN_IF_ERROR(err_code);
 
-    // err_code = drv_ak9750_one_shot();
-    // RETURN_IF_ERROR(err_code);
-
-    NRF_LOG_INFO("*** Range Star Sample ****\r\n");
-
-    // vl53l0x_init(true);
-    // // lower the return signal rate limit (default is 0.25 MCPS)
-    // setSignalRateLimit(0.1);
-    // // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-    // setVcselPulsePeriod(VcselPeriodPreRange, 18);
-    // setVcselPulsePeriod(VcselPeriodFinalRange, 14);
-
-    // setMeasurementTimingBudget(20000);
-
-    // nrf_delay_ms(200);
-
     startRangeSingleMillimeters();
-    //NRF_LOG_RAW_INFO("\nRange: %d  \n", readRangeContinuousMillimeters());
-
-    NRF_LOG_INFO("*** Range End Sample ****\r\n");
+    NRF_LOG_RAW_INFO("\nRange: %d  \n", readRangeContinuousMillimeters());
 
     err_code = drv_vl53l0x_close();
     RETURN_IF_ERROR(err_code);

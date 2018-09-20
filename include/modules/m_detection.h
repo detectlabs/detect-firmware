@@ -14,7 +14,7 @@ typedef struct
 } m_detection_init_t;
 
 /**@brief Detection default configuration. */
-#define DETECTION_CONFIG_DEFAULT {                     \
+#define     DETECTION_CONFIG_DEFAULT {                 \
     .presence_interval_ms = 1000,                      \
     .range_interval_ms    = 1000,                      \
     .threshold_config     =                            \

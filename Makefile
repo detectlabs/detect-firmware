@@ -3,7 +3,7 @@ TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := nordic_nRF5
-PROJ_DIR := ./
+PROJ_DIR := .
 
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   LINKER_SCRIPT  := ./source/ble_app_buttonless_dfu_gcc_nrf52.ld

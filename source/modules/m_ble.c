@@ -494,7 +494,7 @@ static void dcs_evt_handler (ble_dcs_t        * p_dcs,
 
 /**@brief Function for initializing services that will be used by the application.
  */
-static void services_init(m_ble_service_handle_t * p_service_handles, uint32_t num_services)
+static uint32_t services_init(m_ble_service_handle_t * p_service_handles, uint32_t num_services)
 {
     uint32_t                  err_code;
     nrf_ble_qwr_init_t        qwr_init  = {0};
@@ -542,6 +542,8 @@ static void services_init(m_ble_service_handle_t * p_service_handles, uint32_t n
             }
         }
     }
+
+    return NRF_SUCCESS;
 
     /* YOUR_JOB: Add code to initialize the services used by the application.
        uint32_t                           err_code;

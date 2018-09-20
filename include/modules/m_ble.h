@@ -63,7 +63,7 @@ typedef void (*m_ble_evt_handler_t)(m_ble_evt_t * p_evt);
 
 /**@brief  BLE service callback definitions.
 */
-typedef void (*m_ble_service_evt_cb_t)(ble_evt_t * p_ble_evt);
+typedef void (*m_ble_service_evt_cb_t)(ble_evt_t const * p_ble_evt);
 typedef uint32_t (*m_ble_service_init_cb_t)(bool flash_reinit);
 
 /**@brief BLE service handle structure.

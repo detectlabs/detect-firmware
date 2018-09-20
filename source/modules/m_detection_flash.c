@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "m_detection_flash.h"
+#include "app_scheduler.h"
 
 #include "fds.h"
 #include "nrf_log.h"
@@ -75,7 +76,6 @@ static void det_fds_evt_handler( fds_evt_t const * const p_fds_evt )
 
 uint32_t m_det_flash_config_store(const ble_dds_config_t * p_config)
 {
-    uint32_t            err_code;
     fds_record_t        record;
     ret_code_t rc;
 
@@ -102,7 +102,6 @@ uint32_t m_det_flash_config_store(const ble_dds_config_t * p_config)
 
 uint32_t m_det_flash_config_load(ble_dds_config_t ** p_config)
 {
-    uint32_t            err_code;
     ret_code_t rc;
     fds_flash_record_t  flash_record;
     fds_find_token_t    ftok;
@@ -134,20 +133,19 @@ uint32_t m_det_flash_config_load(ble_dds_config_t ** p_config)
 uint32_t m_det_flash_init(const ble_dds_config_t * p_default_config,
                           ble_dds_config_t      ** p_config)
 {
-    uint32_t err_code;
     ret_code_t rc;
 
-    NRF_LOG_INFO("\rDetection Default Config\r\n");
-    NRF_LOG_RAW_INFO("presence_intervale_ms: %d  \n", p_default_config->presence_interval_ms);
-    NRF_LOG_RAW_INFO("range_intervale_ms: %d  \n", p_default_config->range_interval_ms);
-    NRF_LOG_RAW_INFO("threshold_config.eth13h: %d  \n", p_default_config->threshold_config.eth13h);
-    NRF_LOG_RAW_INFO("threshold_config.eth13l: %d  \n", p_default_config->threshold_config.eth13l);
-    NRF_LOG_RAW_INFO("threshold_config.eth24h: %d  \n", p_default_config->threshold_config.eth24h);
-    NRF_LOG_RAW_INFO("threshold_config.eth24l: %d  \n", p_default_config->threshold_config.eth24l);
-    NRF_LOG_RAW_INFO("sample_mode: %d  \n", p_default_config->sample_mode);
+    // NRF_LOG_INFO("\rDetection Default Config\r\n");
+    // NRF_LOG_RAW_INFO("presence_intervale_ms: %d  \n", p_default_config->presence_interval_ms);
+    // NRF_LOG_RAW_INFO("range_intervale_ms: %d  \n", p_default_config->range_interval_ms);
+    // NRF_LOG_RAW_INFO("threshold_config.eth13h: %d  \n", p_default_config->threshold_config.eth13h);
+    // NRF_LOG_RAW_INFO("threshold_config.eth13l: %d  \n", p_default_config->threshold_config.eth13l);
+    // NRF_LOG_RAW_INFO("threshold_config.eth24h: %d  \n", p_default_config->threshold_config.eth24h);
+    // NRF_LOG_RAW_INFO("threshold_config.eth24l: %d  \n", p_default_config->threshold_config.eth24l);
+    // NRF_LOG_RAW_INFO("sample_mode: %d  \n", p_default_config->sample_mode);
 
 
-    NRF_LOG_INFO("Detection Flash Initialization\r\n");
+    // NRF_LOG_INFO("Detection Flash Initialization\r\n");
     
     VERIFY_PARAM_NOT_NULL(p_default_config);
 
@@ -166,7 +164,7 @@ uint32_t m_det_flash_init(const ble_dds_config_t * p_default_config,
     
     if (rc == FDS_ERR_NOT_FOUND)
     {
-        NRF_LOG_INFO("Writing default config\r\n");
+        NRF_LOG_INFO("Writing default detection config\r\n");
 
         fds_record_t        record;
 
@@ -194,14 +192,14 @@ uint32_t m_det_flash_init(const ble_dds_config_t * p_default_config,
     }
     else
     {
-        NRF_LOG_INFO("\rDetection Loaded Config\r\n");
-        NRF_LOG_RAW_INFO("presence_intervale_ms: %d  \n", (*p_config)->presence_interval_ms);
-        NRF_LOG_RAW_INFO("range_intervale_ms: %d  \n", (*p_config)->range_interval_ms);
-        NRF_LOG_RAW_INFO("threshold_config.eth13h: %d  \n", (*p_config)->threshold_config.eth13h);
-        NRF_LOG_RAW_INFO("threshold_config.eth13l: %d  \n", (*p_config)->threshold_config.eth13l);
-        NRF_LOG_RAW_INFO("threshold_config.eth24h: %d  \n", (*p_config)->threshold_config.eth24h);
-        NRF_LOG_RAW_INFO("threshold_config.eth24l: %d  \n", (*p_config)->threshold_config.eth24l);
-        NRF_LOG_RAW_INFO("sample_mode: %d  \n", (*p_config)->sample_mode);
+        // NRF_LOG_INFO("\rDetection Loaded Config\r\n");
+        // NRF_LOG_RAW_INFO("presence_intervale_ms: %d  \n", (*p_config)->presence_interval_ms);
+        // NRF_LOG_RAW_INFO("range_intervale_ms: %d  \n", (*p_config)->range_interval_ms);
+        // NRF_LOG_RAW_INFO("threshold_config.eth13h: %d  \n", (*p_config)->threshold_config.eth13h);
+        // NRF_LOG_RAW_INFO("threshold_config.eth13l: %d  \n", (*p_config)->threshold_config.eth13l);
+        // NRF_LOG_RAW_INFO("threshold_config.eth24h: %d  \n", (*p_config)->threshold_config.eth24h);
+        // NRF_LOG_RAW_INFO("threshold_config.eth24l: %d  \n", (*p_config)->threshold_config.eth24l);
+        // NRF_LOG_RAW_INFO("sample_mode: %d  \n", (*p_config)->sample_mode);
 
         APP_ERROR_CHECK(rc);
     }

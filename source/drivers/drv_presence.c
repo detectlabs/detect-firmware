@@ -146,8 +146,6 @@ static void gpiote_uninit(uint32_t pin)
 
 uint32_t drv_presence_disable(void)
 {
-    uint32_t err_code;
-
     if (m_drv_presence.enabled == false)
     {
         return NRF_SUCCESS;

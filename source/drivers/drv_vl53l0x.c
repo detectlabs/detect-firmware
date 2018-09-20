@@ -137,7 +137,7 @@ bool vl53l0x_init(bool io_2v8)
   // The SPAD map (RefGoodSpadMap) is read by VL53L0X_get_info_from_device() in
   // the API, but the same data seems to be more easily readable from
   // GLOBAL_CONFIG_SPAD_ENABLES_REF_0 through _6, so read it from there
-  int8_t ref_spad_map[6];
+  uint8_t ref_spad_map[6];
   readMulti(GLOBAL_CONFIG_SPAD_ENABLES_REF_0, ref_spad_map, 6);
 
   // -- VL53L0X_set_reference_spads() begin (assume NVM values are valid)
@@ -327,7 +327,7 @@ bool init2() {
 // Write an 8-bit register
 void writeReg(int8_t reg, int8_t value)
 {
-    int8_t data_temp[2];
+    uint8_t data_temp[2];
 //!  Wire.beginTransmission(address);
 //!  Wire.write(reg);
 //!  Wire.write(value);
@@ -360,7 +360,7 @@ void writeReg(int8_t reg, int8_t value)
 // Write a 16-bit register
 void writeReg16Bit(int8_t reg, int16_t value)
 {
-    int8_t data_temp[3];
+    uint8_t data_temp[3];
 //!  Wire.beginTransmission(address);
 //!  Wire.write(reg);
 //!  Wire.write((value >> 8) & 0xFF); // value high byte
@@ -384,7 +384,7 @@ void writeReg16Bit(int8_t reg, int16_t value)
 // Write a 32-bit register
 void writeReg32Bit(int8_t reg, int32_t value)
 {
-    int8_t data_temp[5];
+    uint8_t data_temp[5];
 //!  Wire.beginTransmission(address);
 //!  Wire.write(reg);
 //!  Wire.write((value >> 24) & 0xFF); // value highest byte
@@ -414,7 +414,7 @@ void writeReg32Bit(int8_t reg, int32_t value)
 // Read an 8-bit register
 int8_t readReg(int8_t reg)
 {
-  int8_t value;
+  uint8_t value;
 
 //!  Wire.beginTransmission(address);
 //!  Wire.write(reg);
@@ -442,7 +442,7 @@ int8_t readReg(int8_t reg)
 int16_t readReg16Bit(int8_t reg)
 {
   int16_t value;
-  int8_t data_temp[2];
+  uint8_t data_temp[2];
 
 //!  Wire.beginTransmission(address);
 //!  Wire.write(reg);
@@ -471,7 +471,7 @@ int16_t readReg16Bit(int8_t reg)
 int32_t readReg32Bit(int8_t reg)
 {
     int32_t value;
-    int8_t data_temp[4];
+    uint8_t data_temp[4];
 //!  Wire.beginTransmission(address);
 //!  Wire.write(reg);
 //!  last_status = Wire.endTransmission();
@@ -493,20 +493,17 @@ int32_t readReg32Bit(int8_t reg)
 //   value |= (int32_t)_i2c_read() << 8;
 //   value |= _i2c_read(0);
 
-
-
   _i2c_read(address, reg, data_temp, 4);
-  value  = (data_temp[0] << 24 | data_temp[1] << 16 | data_temp[2] << 8 | data_temp[3] & 0xff);
-
+  value  = (data_temp[0] << 24 | data_temp[1] << 16 | data_temp[2] << 8 | (data_temp[3] & 0xff));
 
   return value;
 }
 
 // Write an arbitrary number of bytes from the given array to the sensor,
 // starting at the given register
-void writeMulti(int8_t reg, int8_t * src, int8_t count)
+void writeMulti(int8_t reg, uint8_t * src, int8_t count)
 {
-    int8_t data_temp[7];
+    uint8_t data_temp[7];
 //!  Wire.beginTransmission(address);
 //!  Wire.write(reg);
 //!
@@ -541,7 +538,7 @@ void writeMulti(int8_t reg, int8_t * src, int8_t count)
 
 // Read an arbitrary number of bytes from the sensor, starting at the given
 // register, into the given array
-void readMulti(int8_t reg, int8_t * dst, int8_t count)
+void readMulti(int8_t reg, uint8_t * dst, int8_t count)
 {
 //!  Wire.beginTransmission(address);
 //!  Wire.write(reg);
@@ -1009,9 +1006,7 @@ int16_t readRangeContinuousMillimeters(void)
   while ((readReg(RESULT_INTERRUPT_STATUS) & 0x07) == 0)
   {
     iTimeout++;
-    //usleep(5000);
     nrf_delay_ms(1);
-    NRF_LOG_RAW_INFO("\nVL Read Ranging Timeout\n");
     if (iTimeout > 100) { 
       NRF_LOG_RAW_INFO("\nVL Read Ranging Timeout\n");
       did_timeout = true;
@@ -1058,12 +1053,11 @@ void startRangeSingleMillimeters(void)
   while (readReg(SYSRANGE_START) & 0x01)
   {
     iTimeout++;
-    //usleep(5000);
     nrf_delay_ms(1);
-    if (iTimeout > 100) { 
+    if (iTimeout > 100) 
+    { 
       NRF_LOG_RAW_INFO("\nVL Start Ranging Timeout\n");
-      did_timeout = true;
-      return 65535; }
+    }
   }
 
   //return readRangeContinuousMillimeters();
@@ -1083,7 +1077,7 @@ bool timeoutOccurred()
 // Get reference SPAD (single photon avalanche diode) count and type
 // based on VL53L0X_get_info_from_device(),
 // but only gets reference SPAD count and type
-bool getSpadInfo(int8_t * count, bool * type_is_aperture)
+bool getSpadInfo(int8_t * count, int8_t * type_is_aperture)
 {
   int8_t tmp;
   int iTimeout = 0;
@@ -1110,7 +1104,6 @@ bool getSpadInfo(int8_t * count, bool * type_is_aperture)
   while (readReg(0x83) == 0x00)
   {
     iTimeout++;
-    //usleep(5000);
     nrf_delay_ms(5);
     if (iTimeout > 100) { 
       NRF_LOG_RAW_INFO("\nVL Spad Timeout\n");
@@ -1255,7 +1248,6 @@ bool performSingleRefCalibration(int8_t vhv_init_byte)
   while ((readReg(RESULT_INTERRUPT_STATUS) & 0x07) == 0)
   {
     iTimeout++;
-    //usleep(5000);
     nrf_delay_ms(5);
     if (iTimeout > 100) { return false; }
   }
@@ -1266,13 +1258,6 @@ bool performSingleRefCalibration(int8_t vhv_init_byte)
 
   return true;
 }
-
-
-//!void main() {
-//!   delay_ms(1000);
-//!   init();
-//!
-//!}
 
 /**@brief Function for reading a sensor register.
  *
@@ -1306,19 +1291,11 @@ uint32_t drv_vl53l0x_verify(uint8_t * who_am_i)
 {
     uint32_t err_code;
 
-    NRF_LOG_INFO("VERIFY START!!!!! \r\n");
-
     DRV_CFG_CHECK(m_vl53l0x.p_cfg);
 
-    NRF_LOG_INFO("DRV VL53L0x CHECK PASS!!!!! \r\n");
-
     err_code = reg_read(DEVICE_ID, who_am_i);
-    NRF_LOG_INFO("ERROR: %d \r\n", err_code);
     RETURN_IF_ERROR(err_code);
-
-    NRF_LOG_INFO("READ PASS!!!!! \r\n");
-
-    NRF_LOG_INFO("who_am_i: %d", *who_am_i);
+    //NRF_LOG_INFO("who_am_i: %d", *who_am_i);
 
     return (*who_am_i == DEVICE_ID_VALUE) ? NRF_SUCCESS : NRF_ERROR_NOT_FOUND;
 }
@@ -1338,8 +1315,6 @@ static __inline uint32_t twi_open(void)
 
     nrf_drv_twi_enable(m_vl53l0x.p_cfg->p_twi_instance);
 
-    NRF_LOG_INFO("END VL53L0X TWI OPEN!!!!! \r\n");
-
     return NRF_SUCCESS;
 }
 
@@ -1355,29 +1330,29 @@ static __inline uint32_t twi_close(void)
     return NRF_SUCCESS;
 }
 
-/**@brief Function for writing to a sensor register.
- *
- * @param[in]  reg_addr            Address of the register to write to.
- * @param[in]  reg_val             Value to write to the register.
- *
- * @retval NRF_SUCCESS             If operation was successful.
- * @retval NRF_ERROR_BUSY          If the TWI drivers are busy.
- */
-static uint32_t reg_write(uint8_t reg_addr, uint8_t reg_val)
-{
-    uint32_t err_code;
+// /**@brief Function for writing to a sensor register.
+//  *
+//  * @param[in]  reg_addr            Address of the register to write to.
+//  * @param[in]  reg_val             Value to write to the register.
+//  *
+//  * @retval NRF_SUCCESS             If operation was successful.
+//  * @retval NRF_ERROR_BUSY          If the TWI drivers are busy.
+//  */
+// static uint32_t reg_write(uint8_t reg_addr, uint8_t reg_val)
+// {
+//     uint32_t err_code;
 
-    uint8_t buffer[2] = {reg_addr, reg_val};
+//     uint8_t buffer[2] = {reg_addr, reg_val};
 
-    err_code = nrf_drv_twi_tx( m_vl53l0x.p_cfg->p_twi_instance,
-                               m_vl53l0x.p_cfg->twi_addr,
-                               buffer,
-                               2,
-                               false );
-    RETURN_IF_ERROR(err_code);
+//     err_code = nrf_drv_twi_tx( m_vl53l0x.p_cfg->p_twi_instance,
+//                                m_vl53l0x.p_cfg->twi_addr,
+//                                buffer,
+//                                2,
+//                                false );
+//     RETURN_IF_ERROR(err_code);
 
-    return NRF_SUCCESS;
-}
+//     return NRF_SUCCESS;
+// }
 
 ret_code_t i2c_write(uint8_t deviceAddr, uint8_t * pdata, size_t size, bool stop)
 {
@@ -1417,7 +1392,7 @@ uint32_t drv_vl53l0x_open(drv_vl53l0x_twi_cfg_t const * const p_cfg)
 
 uint32_t drv_vl53l0x_reset(void)
 {
-    uint32_t err_code;
+    //uint32_t err_code;
 
     //err_code = reg_write(CNTL2, 0xFF);
     //RETURN_IF_ERROR(err_code);
@@ -1427,9 +1402,6 @@ uint32_t drv_vl53l0x_reset(void)
 
 uint32_t drv_vl53l0x_init()
 {
-    uint32_t err_code;
-    uint8_t  dummy;
-
     DRV_CFG_CHECK(m_vl53l0x.p_cfg);
 
     vl53l0x_init(true);

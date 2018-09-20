@@ -4,6 +4,7 @@
 #include "macros.h"
 #include "nrf_drv_twi.h"
 #include <stdint.h>
+#include "ble_dds.h"
 
 /**@brief Device WHO_AM_I register. */
 #define DEVICE_ID                            0x01
@@ -32,20 +33,21 @@ typedef struct
     nrf_drv_twi_config_t const * p_twi_cfg;       ///< The TWI configuration to use while the driver is enabled.
 } drv_ak9750_twi_cfg_t;
 
-uint32_t drv_ak9750_open(drv_ak9750_twi_cfg_t const * const p_cfg);
+uint32_t drv_ak9750_cfg_set(void);
 
+uint32_t drv_ak9750_get_irs(ble_dds_presence_t * presence);
+
+uint32_t drv_ak9750_one_shot(void);
+
+uint32_t drv_ak9750_open(drv_ak9750_twi_cfg_t const * const p_cfg);
 
 uint32_t drv_ak9750_verify(uint8_t * who_am_i);
 
-
 uint32_t drv_ak9750_reset(void);
-
 
 uint32_t drv_ak9750_init();
 
-
 uint32_t drv_ak9750_close(void);
-
 
 uint32_t get_drv_ak9750_values(int16_t *ir1, int16_t *ir2, int16_t *ir3, int16_t *ir4);
 

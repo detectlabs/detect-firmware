@@ -4,6 +4,7 @@
 #include "macros.h"
 #include "nrf_drv_twi.h"
 #include <stdint.h>
+#include "ble_dds.h"
 
 /**@brief Device WHO_AM_I register. */
 #define DEVICE_ID                            0xC0
@@ -142,7 +143,6 @@ uint32_t get_drv_vl53l0x_values(int16_t *ir1, int16_t *ir2, int16_t *ir3, int16_
     } SequenceStepEnables;
 
 
-
     typedef struct 
     {
       int16_t pre_range_vcsel_period_pclks, final_range_vcsel_period_pclks;
@@ -167,11 +167,11 @@ uint32_t get_drv_vl53l0x_values(int16_t *ir1, int16_t *ir2, int16_t *ir3, int16_
     int8_t stop_variable; // read by init and used when starting measurement; is StopVariable field of VL53L0X_DevData_t structure in API
     int32_t measurement_timing_budget_us;
 
-    bool getSpadInfo(int8_t * count, bool * type_is_aperture);
+    bool getSpadInfo(int8_t * count, int8_t * type_is_aperture);
 
     int8_t last_status; // status of last I2C transmission
 
-    VL53L0X(void);
+    void VL53L0X(void);
 
     void setAddress(int8_t new_addr);
     //int8_t getAddress(void) { return address; }
@@ -186,8 +186,8 @@ uint32_t get_drv_vl53l0x_values(int16_t *ir1, int16_t *ir2, int16_t *ir3, int16_
     int16_t readReg16Bit(int8_t reg);
     int32_t readReg32Bit(int8_t reg);
 
-    void writeMulti(int8_t reg, int8_t  * src, int8_t count);
-    void readMulti(int8_t reg, int8_t * dst, int8_t count);
+    void writeMulti(int8_t reg, uint8_t  * src, int8_t count);
+    void readMulti(int8_t reg, uint8_t * dst, int8_t count);
 
     bool setSignalRateLimit(float limit_Mcps);
     float getSignalRateLimit(void);
@@ -198,6 +198,9 @@ uint32_t get_drv_vl53l0x_values(int16_t *ir1, int16_t *ir2, int16_t *ir3, int16_
     bool setVcselPulsePeriod(vcselPeriodType type, int8_t period_pclks);
     int8_t getVcselPulsePeriod(vcselPeriodType type);
 
+    uint32_t drv_vl53l0x_get_range(ble_dds_range_t * range);
+
+    void startRangeSingleMillimeters(void);
     void startContinuous(int32_t period_ms); // = 0);
     void stopContinuous(void);
     int16_t readRangeContinuousMillimeters(void);
@@ -208,14 +211,12 @@ uint32_t get_drv_vl53l0x_values(int16_t *ir1, int16_t *ir2, int16_t *ir3, int16_
     //int16_t getTimeout(void) { return io_timeout; }
     bool timeoutOccurred(void);
 
-
-
     bool performSingleRefCalibration(int8_t vhv_init_byte);
 
-    static int16_t decodeTimeout(int16_t value);
-    static int16_t encodeTimeout(int16_t timeout_mclks);
-    static int32_t timeoutMclksToMicroseconds(int16_t timeout_period_mclks, int8_t vcsel_period_pclks);
-    static int32_t timeoutMicrosecondsToMclks(int32_t timeout_period_us, int8_t vcsel_period_pclks);
+    int16_t decodeTimeout(int16_t value);
+    int16_t encodeTimeout(int16_t timeout_mclks);
+    int32_t timeoutMclksToMicroseconds(int16_t timeout_period_mclks, int8_t vcsel_period_pclks);
+    int32_t timeoutMicrosecondsToMclks(int32_t timeout_period_us, int8_t vcsel_period_pclks);
 
 
 #endif
