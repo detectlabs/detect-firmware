@@ -57,7 +57,7 @@ static void on_write(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
         if (p_dds->is_presence_notif_enabled != notif_enabled)
         {
 
-            NRF_LOG_INFO("ENABLING NOTIF PRESENCE!!!!! \r\n");
+            NRF_LOG_INFO("NOTIF PRESENCE!!!!! \r\n");
             p_dds->is_presence_notif_enabled = notif_enabled;
 
             if (p_dds->evt_handler != NULL)
@@ -75,7 +75,7 @@ static void on_write(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
 
         if (p_dds->is_range_notif_enabled != notif_enabled)
         {
-            NRF_LOG_INFO("ENABLING NOTIF RANGE!!!!! \r\n");
+            NRF_LOG_INFO("NOTIF RANGE!!!!! \r\n");
 
             p_dds->is_range_notif_enabled = notif_enabled;
 

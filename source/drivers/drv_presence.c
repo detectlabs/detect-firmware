@@ -71,7 +71,7 @@ static void gpiote_evt_sceduled(void * p_event_data, uint16_t event_size)
 
         if(int_status & IR13H_MASK || int_status & IR13L_MASK || int_status & IR24H_MASK || int_status & IR24L_MASK)
         {
-            NRF_LOG_RAW_INFO("\n$$$               INTST IR: %d            $$$$  \n", int_status);
+            //NRF_LOG_RAW_INFO("\n$$$               INTST IR: %d            $$$$  \n", int_status);
 
             if(!ak9750_output_active)
             {

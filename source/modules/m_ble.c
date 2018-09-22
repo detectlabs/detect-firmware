@@ -440,7 +440,7 @@ static void dcs_evt_handler (ble_dcs_t        * p_dcs,
 {
     bool update_flash = false;
 
-    NRF_LOG_INFO("dcs_evt_handler:  %d.",evt_type);
+    //NRF_LOG_INFO("dcs_evt_handler:  %d.",evt_type);
     switch (evt_type)
     {
         case BLE_DCS_EVT_DEV_NAME:
@@ -635,7 +635,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 {
     uint32_t err_code = NRF_SUCCESS;
 
-    NRF_LOG_INFO("ble_evt_handler:  %d.",p_ble_evt->header.evt_id);
+    //NRF_LOG_INFO("ble_evt_handler:  %d.",p_ble_evt->header.evt_id);
 
     ble_dcs_on_ble_evt(&m_dcs, p_ble_evt);
 
