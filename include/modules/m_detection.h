@@ -15,7 +15,7 @@ typedef struct
 
 /**@brief Detection default configuration. */
 #define     DETECTION_CONFIG_DEFAULT {                 \
-    .presence_interval_ms = 1000,                      \
+    .presence_interval_ms = 100,                      \
     .range_interval_ms    = 1000,                      \
     .threshold_config     =                            \
     {                                                  \
@@ -24,7 +24,7 @@ typedef struct
         .eth24h            = 100,                      \
         .eth24l            = 100                       \
     },                                                 \
-    .sample_mode          = SAMPLE_MODE_CONTINUOUS     \
+    .sample_mode          = SAMPLE_MODE_MOTION     \
 }
 
 uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t * p_params);

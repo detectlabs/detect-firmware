@@ -53,8 +53,8 @@ uint32_t twi_manager_request(nrf_drv_twi_t const *        p_instance,
     uint32_t err_code;
     uint8_t current_context = current_int_priority_get();
 
-    NRF_LOG_ERROR("current_context  %d\r\n", current_context);
-    NRF_LOG_ERROR("s_context_limit  %d\r\n", s_context_limit);
+    //NRF_LOG_ERROR("current_context  %d\r\n", current_context);
+    //NRF_LOG_ERROR("s_context_limit  %d\r\n", s_context_limit);
 
 
     if (current_context < s_context_limit)
@@ -75,8 +75,8 @@ uint32_t twi_manager_request(nrf_drv_twi_t const *        p_instance,
         return err_code;
     }
 
-    NRF_LOG_INFO("AFTER TWI INIT: \r\n");
-    NRF_LOG_INFO("ERROR: %d \r\n", err_code);
+    //NRF_LOG_INFO("AFTER TWI INIT: \r\n");
+    //NRF_LOG_INFO("ERROR: %d \r\n", err_code);
 
     return NRF_SUCCESS;
 }

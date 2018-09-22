@@ -4,12 +4,14 @@
 #include "nrf_drv_twi.h"
 #include <stdint.h>
 #include "ble_dds.h"
+#include "m_ble.h"
 
 /**@brief Pressure driver event types.
  */
 typedef enum
 {
     DRV_PRESENCE_EVT_DATA,    /**<Converted value ready to be read.*/
+    DRV_PRESENCE_EVT_MOTION_STOP,
     DRV_PRESENCE_EVT_ERROR    /**<HW error on the communication bus.*/
 }drv_presence_evt_type_t;
 
@@ -44,6 +46,18 @@ typedef struct
     drv_presence_evt_handler_t   evt_handler;       ///< Event handler - called after a pin interrupt has been detected.
     drv_presence_mode_t          mode;              ///< Current mode of operation.
 }drv_presence_init_t;
+
+uint32_t drv_presence_disable_dri(void);
+
+uint32_t drv_presence_enable_dri(void);
+
+uint32_t gpiote_init(uint32_t pin);
+
+void gpiote_uninit(uint32_t pin);
+
+uint32_t drv_presence_clear_int(void);
+
+uint32_t drv_presence_read_int(uint8_t * status);
 
 /**@brief Function for initializing the presence driver.
  *

@@ -9,12 +9,15 @@ static ble_dds_config_t     * m_p_config;       ///< Configuraion pointer./
 static const ble_dds_config_t m_default_config = DETECTION_CONFIG_DEFAULT; ///< Default configuraion.
 
 APP_TIMER_DEF(presence_timer_id);
+APP_TIMER_DEF(presence_motion_timer_id);
 APP_TIMER_DEF(range_timer_id);
+
 
 /**@brief Pressure sensor event handler.
  */
 static void drv_presence_evt_handler(drv_presence_evt_t const * p_event)
 {
+    uint32_t err_code;
     NRF_LOG_INFO("******************************************HERE \r\n");
     switch (p_event->type)
     {
@@ -29,6 +32,21 @@ static void drv_presence_evt_handler(drv_presence_evt_t const * p_event)
                 NRF_LOG_INFO("********PRESENCE EVENT!!!!! \r\n");
 
             }
+            else if(p_event->mode == DRV_PRESENCE_MODE_MOTION)
+            {
+                //Start Timer to drive ak sampling when motion is detect_ble_evt_disconnected
+
+                app_timer_start(presence_motion_timer_id,
+                        APP_TIMER_TICKS(50),
+                        NULL);
+            }
+        }
+        break;
+
+        case DRV_PRESENCE_EVT_MOTION_STOP:
+        {
+            err_code = app_timer_stop(presence_motion_timer_id);
+            APP_ERROR_CHECK(err_code);
         }
         break;
 
@@ -71,6 +89,18 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
     }
 }
 
+static void presence_motion_timeout_handler(void * p_context)
+{
+    uint32_t err_code;
+
+
+    NRF_LOG_INFO("!!!!  PRESENCE MOTION TIMEOUT HANDLER   !!!!! \r\n");
+    ble_dds_presence_t presence;
+
+    drv_presence_get(&presence);
+    (void)ble_dds_presence_set(&m_dds, &presence);
+}
+
 /**@brief Function for handling pressure timer timout event.
  *
  * @details This function will read the pressure at the configured rate.
@@ -78,6 +108,12 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
 static void presence_timeout_handler(void * p_context)
 {
     uint32_t err_code;
+
+    if(m_p_config->sample_mode == DRV_PRESENCE_MODE_MOTION)
+    {
+
+
+    }
 
     NRF_LOG_INFO("PRESENCE TIMEOUT HANDLER!!!!! \r\n");
 
@@ -142,15 +178,19 @@ static uint32_t presence_start(void)
     err_code = drv_presence_enable();
     APP_ERROR_CHECK(err_code);
 
-    err_code = drv_presence_sample();
-    APP_ERROR_CHECK(err_code);
+    if(m_p_config->sample_mode == DRV_PRESENCE_MODE_CONTINUOUS)
+    {     
+        err_code = drv_presence_sample();
+        APP_ERROR_CHECK(err_code);
 
-     NRF_LOG_RAW_INFO("\r########## presence_intervale_ms: %d  \n", m_default_config.presence_interval_ms);
+        return app_timer_start(presence_timer_id,
+                        APP_TIMER_TICKS(m_p_config->presence_interval_ms),
+                        NULL);    
+    }
 
-
-    return app_timer_start(presence_timer_id,
-                           APP_TIMER_TICKS(m_p_config->presence_interval_ms),
-                           NULL);                     
+    NRF_LOG_RAW_INFO("\r########## presence_intervale_ms: %d  \n", m_default_config.presence_interval_ms);
+          
+    return NRF_SUCCESS;  
 }
 
 /**@brief Function for starting pressure sampling.
@@ -158,6 +198,12 @@ static uint32_t presence_start(void)
 static uint32_t range_start(void)
 {
     uint32_t err_code;
+
+    if(m_p_config->sample_mode == DRV_PRESENCE_MODE_MOTION)
+    {
+        
+
+    }
 
     err_code = drv_range_enable();
     APP_ERROR_CHECK(err_code);
@@ -327,6 +373,15 @@ static uint32_t detection_service_init(bool major_minor_fw_ver_changed)
     err_code = config_verify(m_p_config);
     APP_ERROR_CHECK(err_code);
 
+    NRF_LOG_INFO("\rDetection Loaded Config\r\n");
+    NRF_LOG_RAW_INFO("presence_intervale_ms: %d  \n", (m_p_config)->presence_interval_ms);
+    NRF_LOG_RAW_INFO("range_intervale_ms: %d  \n", (m_p_config)->range_interval_ms);
+    NRF_LOG_RAW_INFO("threshold_config.eth13h: %d  \n", (m_p_config)->threshold_config.eth13h);
+    NRF_LOG_RAW_INFO("threshold_config.eth13l: %d  \n", (m_p_config)->threshold_config.eth13l);
+    NRF_LOG_RAW_INFO("threshold_config.eth24h: %d  \n", (m_p_config)->threshold_config.eth24h);
+    NRF_LOG_RAW_INFO("threshold_config.eth24l: %d  \n", (m_p_config)->threshold_config.eth24l);
+    NRF_LOG_RAW_INFO("sample_mode: %d  \n", (m_p_config)->sample_mode);
+
     dds_init.p_init_config = m_p_config;
     dds_init.evt_handler = ble_dds_evt_handler;
 
@@ -357,7 +412,7 @@ static uint32_t presence_sensor_init(const nrf_drv_twi_t * p_twi_instance)
     init_params.p_twi_instance          = p_twi_instance;
     init_params.p_twi_cfg               = &twi_config;
     init_params.evt_handler             = drv_presence_evt_handler;
-    init_params.mode                    = DRV_PRESENCE_MODE_CONTINUOUS;
+    init_params.mode                    = DRV_PRESENCE_MODE_MOTION;
 
     return drv_presence_init(&init_params);
 }
@@ -380,7 +435,7 @@ static uint32_t range_sensor_init(const nrf_drv_twi_t * p_twi_instance)
     init_params.p_twi_instance          = p_twi_instance;
     init_params.p_twi_cfg               = &twi_config;
     init_params.evt_handler             = drv_range_evt_handler;
-    init_params.mode                    = DRV_PRESENCE_MODE_CONTINUOUS;
+    init_params.mode                    = DRV_PRESENCE_MODE_MOTION;
 
     return drv_range_init(&init_params);
 }
@@ -412,10 +467,14 @@ uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t 
     APP_ERROR_CHECK(err_code);
 
     /**@brief Init application timers */
+    err_code = app_timer_create(&presence_motion_timer_id, APP_TIMER_MODE_REPEATED, presence_motion_timeout_handler);
+    APP_ERROR_CHECK(err_code);
+
+    /**@brief Init application timers */
     err_code = app_timer_create(&range_timer_id, APP_TIMER_MODE_REPEATED, range_timeout_handler);
     APP_ERROR_CHECK(err_code);
 
-    drv_range_sample();
+    //drv_range_sample();
 
     return NRF_SUCCESS;
 }

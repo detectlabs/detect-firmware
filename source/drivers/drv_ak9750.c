@@ -21,8 +21,25 @@
 
 #define INTST_DRI_MASK                 0x01
 #define NORMAL_FC_8_8_SINGLE_SHOT_MODE 0xAA
+#define NORMAL_FC_8_8_CONTINUOUS       0xAC
+#define DRI_ENABLE_ALL_THRESHOLD       0xFF
 #define DRI_ENABLE_ONLY                0xC1
+#define DRI_DISABLE_ALL_THRESHOLD      0xFE
 #define SRST                           0xFF
+
+#define ETH13H_L                        0x11
+#define ETH13H_H                        0x12
+
+#define ETH13L_L                        0x13
+#define ETH13L_H                        0x14
+
+#define ETH24H_L                        0x15
+#define ETH24H_H                        0x16
+
+#define ETH24L_L                        0x17
+#define ETH24L_H                        0x18
+
+#define ETH13H_MASK                     0x10
 
 /**@brief Check if the driver is open, if not return NRF_ERROR_INVALID_STATE.
  */
@@ -151,31 +168,185 @@ uint32_t drv_ak9750_reset(void)
     return NRF_SUCCESS;
 }
 
-uint32_t drv_ak9750_init()
+uint32_t drv_ak9750_init(void)
 {
+    uint32_t err_code;
+    uint8_t  dummy;
+
+    int value = -150;
+
+    uint8_t lb = value;
+    uint8_t ub = value >> 8;
+
+    uint8_t eth13Hl[2] = {0x11, 0x96}; //11001000
+    uint8_t eth13Hh[2] = {0x12, 0x00}; //00000001
+
+    uint8_t eth13_hl[1];
+    uint8_t eth13_hh[1];
+    uint8_t eth13_ll[1];
+    uint8_t eth13_lh[1];
+
+    uint8_t eth24_hl[1];
+    uint8_t eth24_hh[1];
+    uint8_t eth24_ll[1];
+    uint8_t eth24_lh[1];
+
     DRV_CFG_CHECK(m_ak9750.p_cfg);
 
     drv_ak9750_reset();
 
+    //Setting ETH13H High Threshold
+    reg_write(ETH13H_L, 0x96);
+    reg_write(ETH13H_H, 0x00);
+
+    //Setting hreshold
+    reg_write(ETH13L_L, lb);
+    reg_write(ETH13L_H, ub);
+
+    //Setting hreshold
+    reg_write(ETH24H_L, 0x96);
+    reg_write(ETH24H_H, 0x00);
+
+    //Setting hreshold
+    reg_write(ETH24L_L, lb);
+    reg_write(ETH24L_H, ub);
+
+    //Read ETH13H Threshold values
+    reg_read(ETH13H_L, eth13_hl);
+    reg_read(ETH13H_H, eth13_hh);
+
+    //Read ETd values
+    reg_read(ETH13L_L, eth13_ll);
+    reg_read(ETH13L_H, eth13_lh);
+
+    //Read ETd values
+    reg_read(ETH24H_L, eth24_hl);
+    reg_read(ETH24H_H, eth24_hh);
+
+    //Read ETd values
+    reg_read(ETH24L_L, eth24_ll);
+    reg_read(ETH24L_H, eth24_lh);
+
+    NRF_LOG_RAW_INFO("ETH13HL: %d\n", eth13_hl[0]);
+    NRF_LOG_RAW_INFO("ETH13HH: %d\n", eth13_hh[0]);
+
+    NRF_LOG_RAW_INFO("ETH13LL: %d\n", eth13_ll[0]);
+    NRF_LOG_RAW_INFO("ETH13LH: %d\n", eth13_lh[0]);
+
+    NRF_LOG_RAW_INFO("ETH24HL: %d\n", eth24_hl[0]);
+    NRF_LOG_RAW_INFO("ETH24HH: %d\n", eth24_hh[0]);
+
+    NRF_LOG_RAW_INFO("ETH24LL: %d\n", eth24_ll[0]);
+    NRF_LOG_RAW_INFO("ETH24LH: %d\n", eth24_lh[0]);
+
+    // // Read Interrupt Status
+    // err_code = reg_read(INTST, &dummy);
+    // RETURN_IF_ERROR(err_code);
+
+    // err_code = reg_read(ST2, &dummy);
+    // RETURN_IF_ERROR(err_code);
+
     return NRF_SUCCESS;
 }
 
-uint32_t drv_ak9750_cfg_set(void)
+uint32_t drv_ak9750_cfg_set(drv_range_mode_t mode)
 {
     uint32_t err_code;
     uint8_t  dummy;
 
     DRV_CFG_CHECK(m_ak9750.p_cfg);
 
-    // Enable Interrupt for DRI
-    err_code = reg_write(EINTEN, DRI_ENABLE_ONLY);
-    RETURN_IF_ERROR(err_code);
+    // // Set Mode Reg
+    // err_code = reg_write(ECNTL1, NORMAL_FC_8_8_SINGLE_SHOT_MODE);
+    // RETURN_IF_ERROR(err_code);
+
+    if(mode == DRV_RANGE_MODE_MOTION)
+    {
+        NRF_LOG_INFO("!!!!!! DRV_RANGE_MODE_MOTION ENABLED !!!!! \r\n");
+
+        // Set Mode Reg
+        err_code = reg_write(ECNTL1, NORMAL_FC_8_8_CONTINUOUS);
+        RETURN_IF_ERROR(err_code);
+
+        // Enable Interrupt for DRI
+        err_code = reg_write(EINTEN, DRI_DISABLE_ALL_THRESHOLD);
+        RETURN_IF_ERROR(err_code);
+    }
+    else
+    {
+        NRF_LOG_INFO("!!!!!! DRV_RANGE_MODE_CONTINUOUS ENABLED !!!!! \r\n");
+
+        // Set Mode Reg
+        err_code = reg_write(ECNTL1, NORMAL_FC_8_8_SINGLE_SHOT_MODE);
+        RETURN_IF_ERROR(err_code);
+
+        // Enable Interrupt for DRI
+        err_code = reg_write(EINTEN, DRI_ENABLE_ONLY);
+        RETURN_IF_ERROR(err_code);
+    }
 
     // Read Interrupt Status
     err_code = reg_read(INTST, &dummy);
     RETURN_IF_ERROR(err_code);
 
+    err_code = reg_read(ST2, &dummy);
+    RETURN_IF_ERROR(err_code);
+
     return NRF_SUCCESS;
+}
+
+uint32_t drv_ak9750_enable_dri(void)
+{
+    uint32_t err_code;
+
+    DRV_CFG_CHECK(m_ak9750.p_cfg);
+
+    // Enable Interrupt for DRI
+    err_code = reg_write(EINTEN, DRI_ENABLE_ALL_THRESHOLD);
+    RETURN_IF_ERROR(err_code);
+
+    return err_code;
+}
+
+uint32_t drv_ak9750_disable_dri(void)
+{
+    uint32_t err_code;
+
+    DRV_CFG_CHECK(m_ak9750.p_cfg);
+
+    // Enable Interrupt for DRI
+    err_code = reg_write(EINTEN, DRI_DISABLE_ALL_THRESHOLD);
+    RETURN_IF_ERROR(err_code);
+
+    return err_code;
+}
+
+uint32_t drv_ak9750_read_int(uint8_t * status)
+{
+    uint8_t  dummy;
+    uint32_t err_code;
+
+    DRV_CFG_CHECK(m_ak9750.p_cfg);
+
+    // Read Interrupt Status
+    err_code = reg_read(INTST, status);
+    RETURN_IF_ERROR(err_code);
+
+    return err_code;
+}
+
+uint32_t drv_ak9750_clear_int(void)
+{
+    uint8_t  dummy;
+    uint32_t err_code;
+
+    DRV_CFG_CHECK(m_ak9750.p_cfg);
+
+    // Read Interrupt Status
+    err_code = reg_read(INTST, &dummy);
+    RETURN_IF_ERROR(err_code);
+
+    return err_code;
 }
 
 uint32_t drv_ak9750_close(void)
@@ -207,6 +378,7 @@ uint32_t drv_ak9750_one_shot(void)
 
 uint32_t drv_ak9750_get_irs(ble_dds_presence_t * presence)
 {
+    uint32_t iTimeout = 0;
     uint32_t err_code;
     uint8_t ir1_l;
     uint8_t ir1_h;
@@ -216,11 +388,26 @@ uint32_t drv_ak9750_get_irs(ble_dds_presence_t * presence)
     uint8_t ir3_h;
     uint8_t ir4_l;
     uint8_t ir4_h;
+    uint8_t st1[1];
     uint8_t  dummy;
 
     DRV_CFG_CHECK(m_ak9750.p_cfg);
 
-    err_code = reg_read(ST1, &dummy);
+    do{
+
+        err_code = reg_read(ST1, &st1);
+        RETURN_IF_ERROR(err_code);
+        iTimeout++;
+        nrf_delay_ms(1);
+        if (iTimeout > 100) 
+        {
+            NRF_LOG_RAW_INFO("\nAK Timeout\n");
+            return NRF_ERROR_TIMEOUT; 
+        }
+
+    }while(!(st1[0] & (1<<0)));
+
+    err_code = reg_read(ST1, &st1);
     RETURN_IF_ERROR(err_code);
 
     // IR1
@@ -259,10 +446,7 @@ uint32_t drv_ak9750_get_irs(ble_dds_presence_t * presence)
     RETURN_IF_ERROR(err_code);
     //NRF_LOG_INFO("IR4H %d \r\n", ir4_h);
 
-    // Read Dummy Reg
-    err_code = reg_read(ST1, &dummy);
-    RETURN_IF_ERROR(err_code);
-
+    //Must be read out after data registers
     err_code = reg_read(ST2, &dummy);
     RETURN_IF_ERROR(err_code);
 

@@ -5,6 +5,7 @@
 #include "nrf_drv_twi.h"
 #include <stdint.h>
 #include "ble_dds.h"
+#include "drv_range.h"
 
 /**@brief Device WHO_AM_I register. */
 #define DEVICE_ID                            0x01
@@ -33,7 +34,15 @@ typedef struct
     nrf_drv_twi_config_t const * p_twi_cfg;       ///< The TWI configuration to use while the driver is enabled.
 } drv_ak9750_twi_cfg_t;
 
-uint32_t drv_ak9750_cfg_set(void);
+uint32_t drv_ak9750_disable_dri(void);
+
+uint32_t drv_ak9750_enable_dri(void);
+
+uint32_t drv_ak9750_clear_int(void);
+
+uint32_t drv_ak9750_read_int(uint8_t * status);
+
+uint32_t drv_ak9750_cfg_set(drv_range_mode_t mode);
 
 uint32_t drv_ak9750_get_irs(ble_dds_presence_t * presence);
 
@@ -45,7 +54,7 @@ uint32_t drv_ak9750_verify(uint8_t * who_am_i);
 
 uint32_t drv_ak9750_reset(void);
 
-uint32_t drv_ak9750_init();
+uint32_t drv_ak9750_init(void);
 
 uint32_t drv_ak9750_close(void);
 

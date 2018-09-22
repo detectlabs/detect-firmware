@@ -5,6 +5,12 @@
 #include "nrf_drv_gpiote.h"
 #include "app_scheduler.h"
 
+#define DRI_MASK                    0x01
+#define IR13H_MASK                  0x10
+#define IR13L_MASK                  0x08
+#define IR24H_MASK                  0x06
+#define IR24L_MASK                  0x04
+
 /**@brief Pressure configuration struct.
  */
 typedef struct
@@ -19,16 +25,97 @@ typedef struct
  */
 static drv_presence_t m_drv_presence;
 
+static bool ak9750_output_active = false;
+
+APP_TIMER_DEF(timeout_motion_timer_id);
+
+// Timeout handler for the repeated timer
+static void motion_timeout_handler(void * p_context)
+{
+     // Data ready
+    drv_presence_evt_t evt;
+    evt.type = DRV_PRESENCE_EVT_MOTION_STOP;
+    evt.mode = DRV_PRESENCE_MODE_MOTION;
+ 
+    //application_timers_stop();
+
+    ak9750_output_active = false; 
+
+    NRF_LOG_INFO("TIME ELAPSED ********************************************************************************************");
+
+    //drv_presence_disable_dri();
+
+    m_drv_presence.evt_handler(&evt);
+
+    //Stop pushing new ir and range data
+}
+
 /**@brief GPIOTE sceduled handler, executed in main-context.
  */
 static void gpiote_evt_sceduled(void * p_event_data, uint16_t event_size)
 {
     // Data ready
     drv_presence_evt_t evt;
-    evt.type = DRV_PRESENCE_EVT_DATA;
-    evt.mode = DRV_PRESENCE_MODE_CONTINUOUS;
+    uint8_t int_status;
+    uint32_t err_code;
 
-    m_drv_presence.evt_handler(&evt);
+    evt.type = DRV_PRESENCE_EVT_DATA;
+    evt.mode = DRV_PRESENCE_MODE_MOTION;
+
+    gpiote_uninit(m_drv_presence.cfg.pin_int);
+
+    drv_presence_read_int(&int_status);
+
+    if(m_drv_presence.mode == DRV_PRESENCE_MODE_MOTION )//&& int_status | ETH_MASK)
+    {
+
+        if(int_status & IR13H_MASK || int_status & IR13L_MASK || int_status & IR24H_MASK || int_status & IR24L_MASK)
+        {
+            NRF_LOG_RAW_INFO("\n$$$               INTST IR: %d            $$$$  \n", int_status);
+
+            if(!ak9750_output_active)
+            {
+                //drv_presence_enable_dri();
+
+                //Start timeout timer, that will stop data collection when there is no more motion
+                err_code = app_timer_start(timeout_motion_timer_id, APP_TIMER_TICKS(3000), NULL);
+                APP_ERROR_CHECK(err_code); 
+
+                ak9750_output_active = true;
+
+                m_drv_presence.evt_handler(&evt);
+            }
+            else
+            {
+                err_code = app_timer_stop(timeout_motion_timer_id);
+                APP_ERROR_CHECK(err_code); 
+
+                err_code = app_timer_start(timeout_motion_timer_id, APP_TIMER_TICKS(3000), NULL);
+                APP_ERROR_CHECK(err_code); 
+            }
+
+            //Switch to single shot mode and push data
+
+        }
+
+
+        // if(int_status & DRI_MASK && ak9750_output_active)
+        // {
+        //     NRF_LOG_RAW_INFO("\n$$$              INTST DRI: %d            $$$  \n", int_status);
+
+        //     m_drv_presence.evt_handler(&evt);
+        // }
+
+        //Start Data Collection Timer in m_detection for both sensors
+    }
+
+    //Need to check INTST reg to check what caused interrupt
+
+    // Re-enable Pin Interrupt
+    err_code = gpiote_init(m_drv_presence.cfg.pin_int);
+    RETURN_IF_ERROR(err_code);
+
+    //m_drv_presence.evt_handler(&evt);
 }
 
 /**@brief GPIOTE event handler, executed in interrupt-context.
@@ -37,16 +124,14 @@ static void gpiote_evt_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t a
 {
     uint32_t err_code;
 
-    //if ((pin == m_drv_presence.cfg.pin_int) && (nrf_gpio_pin_read(m_drv_presence.cfg.pin_int) == 0))
-    //{
-        err_code = app_sched_event_put(0, 0, gpiote_evt_sceduled);
-        APP_ERROR_CHECK(err_code);
-    //}
+    err_code = app_sched_event_put(0, 0, gpiote_evt_sceduled);
+    APP_ERROR_CHECK(err_code);
+
 }
 
 /**@brief Initialize the GPIO tasks and events system to catch pin data ready interrupts.
  */
-static uint32_t gpiote_init(uint32_t pin)
+uint32_t gpiote_init(uint32_t pin)
 {
     uint32_t err_code;
 
@@ -108,6 +193,10 @@ uint32_t drv_presence_init(drv_presence_init_t * p_params)
     // Presence sensor has internal pullup
     nrf_gpio_cfg_input(m_drv_presence.cfg.pin_int, GPIO_PIN_CNF_PULL_Disabled);
 
+    /**@brief Init application timers */
+    err_code = app_timer_create(&timeout_motion_timer_id, APP_TIMER_MODE_SINGLE_SHOT, motion_timeout_handler);
+    APP_ERROR_CHECK(err_code);
+
     return NRF_SUCCESS;
 }
 
@@ -126,7 +215,7 @@ uint32_t drv_presence_enable(void)
     err_code = drv_ak9750_open(&m_drv_presence.cfg);
     APP_ERROR_CHECK(err_code);
 
-    err_code = drv_ak9750_cfg_set();
+    err_code = drv_ak9750_cfg_set(m_drv_presence.mode);
     RETURN_IF_ERROR(err_code);
 
     err_code = drv_ak9750_close();
@@ -139,7 +228,7 @@ uint32_t drv_presence_enable(void)
 
 /**@brief Uninitialize the GPIO tasks and events system.
  */
-static void gpiote_uninit(uint32_t pin)
+void gpiote_uninit(uint32_t pin)
 {
     nrf_drv_gpiote_in_uninit(pin);
 }
@@ -172,6 +261,71 @@ uint32_t drv_presence_sample(void)
 
     return NRF_SUCCESS;
 }
+
+uint32_t drv_presence_enable_dri(void)
+{
+    uint32_t err_code;
+
+    err_code = drv_ak9750_open(&m_drv_presence.cfg);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_ak9750_enable_dri();
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_ak9750_close();
+    APP_ERROR_CHECK(err_code);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t drv_presence_disable_dri(void)
+{
+    uint32_t err_code;
+
+    err_code = drv_ak9750_open(&m_drv_presence.cfg);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_ak9750_disable_dri();
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_ak9750_close();
+    APP_ERROR_CHECK(err_code);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t drv_presence_read_int(uint8_t * status)
+{
+    uint32_t err_code;
+
+    err_code = drv_ak9750_open(&m_drv_presence.cfg);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_ak9750_read_int(status);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_ak9750_close();
+    APP_ERROR_CHECK(err_code);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t drv_presence_clear_int(void)
+{
+    uint32_t err_code;
+
+    err_code = drv_ak9750_open(&m_drv_presence.cfg);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_ak9750_clear_int();
+    APP_ERROR_CHECK(err_code);
+
+    err_code = drv_ak9750_close();
+    APP_ERROR_CHECK(err_code);
+
+    return NRF_SUCCESS;
+}
+
 
 uint32_t drv_presence_get(ble_dds_presence_t * presence)
 {
