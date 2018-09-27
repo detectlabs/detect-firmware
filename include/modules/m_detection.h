@@ -14,8 +14,10 @@ typedef struct
 } m_detection_init_t;
 
 /**@brief Detection default configuration. */
+
+/* presence_interval_ms      In Continuous sample mode, the sample should be iniated right after the last data is read, otherwise you incur the time to measure plus the interval time 8 */
 #define     DETECTION_CONFIG_DEFAULT {                 \
-    .presence_interval_ms = 50,                      \
+    .presence_interval_ms = 100,                       \
     .range_interval_ms    = 1000,                      \
     .threshold_config     =                            \
     {                                                  \
@@ -24,7 +26,7 @@ typedef struct
         .eth24h            = 100,                      \
         .eth24l            = 100                       \
     },                                                 \
-    .sample_mode          = SAMPLE_MODE_MOTION    \
+    .sample_mode          = SAMPLE_MODE_CONTINUOUS     \
 }
 
 uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t * p_params);

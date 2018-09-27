@@ -17,18 +17,18 @@ typedef enum
 
 /**@brief Pressure modes of operation.
  */
-typedef enum
-{
-    DRV_PRESENCE_MODE_CONTINUOUS,
-    DRV_PRESENCE_MODE_MOTION
-}drv_presence_mode_t;
+// typedef enum
+// {
+//     DRV_PRESENCE_MODE_CONTINUOUS,
+//     DRV_PRESENCE_MODE_MOTION
+// }drv_presence_mode_t;
 
 /**@brief Pressure event struct.
  */
 typedef struct
 {
     drv_presence_evt_type_t type;
-    drv_presence_mode_t     mode;
+    ble_dds_sample_mode_t     mode;
 }drv_presence_evt_t;
 
 /**@brief Pressure driver event handler callback type.
@@ -44,7 +44,7 @@ typedef struct
     nrf_drv_twi_t        const * p_twi_instance;    ///< The instance of TWI master to be used for transactions.
     nrf_drv_twi_config_t const * p_twi_cfg;         ///< The TWI configuration to use while the driver is enabled.
     drv_presence_evt_handler_t   evt_handler;       ///< Event handler - called after a pin interrupt has been detected.
-    drv_presence_mode_t          mode;              ///< Current mode of operation.
+    ble_dds_sample_mode_t          mode;              ///< Current mode of operation.
 }drv_presence_init_t;
 
 uint32_t drv_presence_disable_dri(void);
@@ -94,7 +94,7 @@ uint32_t drv_presence_reset(void);
  * @retval NRF_SUCCESS             If configuration was successful.
  * @retval NRF_ERROR_BUSY          If the TWI drivers are busy.
  */
-uint32_t drv_presence_mode_set(drv_presence_mode_t mode);
+uint32_t drv_presence_mode_set(ble_dds_sample_mode_t mode);
 
 /**@brief Function for getting the presence data [hPa].
  *

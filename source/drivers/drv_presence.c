@@ -17,7 +17,7 @@ typedef struct
 {
     drv_ak9750_twi_cfg_t         cfg;           ///< TWI configuraion.
     drv_presence_evt_handler_t   evt_handler;   ///< Event handler called by gpiote_evt_sceduled.
-    drv_presence_mode_t          mode;          ///< Mode of operation.
+    ble_dds_sample_mode_t          mode;          ///< Mode of operation.
     bool                         enabled;       ///< Driver enabled.
 } drv_presence_t;
 
@@ -35,7 +35,7 @@ static void motion_timeout_handler(void * p_context)
      // Data ready
     drv_presence_evt_t evt;
     evt.type = DRV_PRESENCE_EVT_MOTION_STOP;
-    evt.mode = DRV_PRESENCE_MODE_MOTION;
+    evt.mode = SAMPLE_MODE_MOTION;
  
     //application_timers_stop();
 
@@ -59,15 +59,15 @@ static void gpiote_evt_sceduled(void * p_event_data, uint16_t event_size)
     uint8_t int_status;
     uint32_t err_code;
 
-    evt.type = DRV_PRESENCE_EVT_DATA;
-    evt.mode = DRV_PRESENCE_MODE_MOTION;
+    NRF_LOG_RAW_INFO("\r####################### m_drv_presence.mode: %d  \n", m_drv_presence.mode);
 
     gpiote_uninit(m_drv_presence.cfg.pin_int);
 
     drv_presence_read_int(&int_status);
 
-    if(m_drv_presence.mode == DRV_PRESENCE_MODE_MOTION )//&& int_status | ETH_MASK)
+    if(m_drv_presence.mode == SAMPLE_MODE_MOTION )//&& int_status | ETH_MASK)
     {
+         NRF_LOG_INFO("***********************   SAMPLE_MODE_MOTION ********************");
 
         if(int_status & IR13H_MASK || int_status & IR13L_MASK || int_status & IR24H_MASK || int_status & IR24L_MASK)
         {
@@ -76,6 +76,9 @@ static void gpiote_evt_sceduled(void * p_event_data, uint16_t event_size)
             if(!ak9750_output_active)
             {
                 //drv_presence_enable_dri();
+
+                evt.type = DRV_PRESENCE_EVT_DATA;
+                evt.mode = SAMPLE_MODE_MOTION;
 
                 //Start timeout timer, that will stop data collection when there is no more motion
                 err_code = app_timer_start(timeout_motion_timer_id, APP_TIMER_TICKS(3000), NULL);
@@ -97,25 +100,21 @@ static void gpiote_evt_sceduled(void * p_event_data, uint16_t event_size)
             //Switch to single shot mode and push data
 
         }
-
-
-        // if(int_status & DRI_MASK && ak9750_output_active)
-        // {
-        //     NRF_LOG_RAW_INFO("\n$$$              INTST DRI: %d            $$$  \n", int_status);
-
-        //     m_drv_presence.evt_handler(&evt);
-        // }
-
-        //Start Data Collection Timer in m_detection for both sensors
     }
+    else if(m_drv_presence.mode == SAMPLE_MODE_CONTINUOUS)
+    {
+        NRF_LOG_INFO("***********************   SAMPLE_MODE_CONTINUOUS ********************");
 
-    //Need to check INTST reg to check what caused interrupt
+        evt.type = DRV_PRESENCE_EVT_DATA;
+        evt.mode = SAMPLE_MODE_CONTINUOUS;
+
+        m_drv_presence.evt_handler(&evt);
+    }
 
     // Re-enable Pin Interrupt
     err_code = gpiote_init(m_drv_presence.cfg.pin_int);
-    RETURN_IF_ERROR(err_code);
+    APP_ERROR_CHECK(err_code);
 
-    //m_drv_presence.evt_handler(&evt);
 }
 
 /**@brief GPIOTE event handler, executed in interrupt-context.
@@ -123,6 +122,9 @@ static void gpiote_evt_sceduled(void * p_event_data, uint16_t event_size)
 static void gpiote_evt_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
     uint32_t err_code;
+
+    NRF_LOG_INFO("*************************   PRESENCE INT ********************");
+
 
     err_code = app_sched_event_put(0, 0, gpiote_evt_sceduled);
     APP_ERROR_CHECK(err_code);
@@ -168,6 +170,8 @@ uint32_t drv_presence_init(drv_presence_init_t * p_params)
     VERIFY_PARAM_NOT_NULL(p_params->p_twi_cfg);
     VERIFY_PARAM_NOT_NULL(p_params->evt_handler);
 
+    NRF_LOG_RAW_INFO("\r####################### p_params->mode: %d  \n", p_params->mode);
+
     m_drv_presence.mode               = p_params->mode;
     m_drv_presence.evt_handler        = p_params->evt_handler;
 
@@ -177,6 +181,9 @@ uint32_t drv_presence_init(drv_presence_init_t * p_params)
     m_drv_presence.cfg.p_twi_cfg      = p_params->p_twi_cfg;
 
     m_drv_presence.enabled            = false;
+
+
+    NRF_LOG_RAW_INFO("\r####################### m_drv_presence.mode: %d  \n", m_drv_presence.mode);
 
     err_code = drv_ak9750_open(&m_drv_presence.cfg);
     RETURN_IF_ERROR(err_code);
@@ -252,6 +259,8 @@ uint32_t drv_presence_sample(void)
 
     err_code = drv_ak9750_open(&m_drv_presence.cfg);
     APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("!!!!!! AK ONE SHOT !!!!! \r\n");
 
     err_code = drv_ak9750_one_shot();
     APP_ERROR_CHECK(err_code);
