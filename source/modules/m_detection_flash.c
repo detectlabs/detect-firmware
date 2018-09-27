@@ -137,17 +137,7 @@ uint32_t m_det_flash_init(const ble_dds_config_t * p_default_config,
 {
     ret_code_t rc;
 
-    // NRF_LOG_INFO("\rDetection Default Config\r\n");
-    // NRF_LOG_RAW_INFO("presence_intervale_ms: %d  \n", p_default_config->presence_interval_ms);
-    // NRF_LOG_RAW_INFO("range_intervale_ms: %d  \n", p_default_config->range_interval_ms);
-    // NRF_LOG_RAW_INFO("threshold_config.eth13h: %d  \n", p_default_config->threshold_config.eth13h);
-    // NRF_LOG_RAW_INFO("threshold_config.eth13l: %d  \n", p_default_config->threshold_config.eth13l);
-    // NRF_LOG_RAW_INFO("threshold_config.eth24h: %d  \n", p_default_config->threshold_config.eth24h);
-    // NRF_LOG_RAW_INFO("threshold_config.eth24l: %d  \n", p_default_config->threshold_config.eth24l);
-    // NRF_LOG_RAW_INFO("sample_mode: %d  \n", p_default_config->sample_mode);
-
-
-    NRF_LOG_INFO("Detection Flash Initialization\r\n");
+    //NRF_LOG_INFO("Detection Flash Initialization\r\n");
     
     VERIFY_PARAM_NOT_NULL(p_default_config);
 
@@ -191,27 +181,9 @@ uint32_t m_det_flash_init(const ble_dds_config_t * p_default_config,
         {
             app_sched_execute();
         }
-
-        //         NRF_LOG_INFO("\rDetection Loaded Config\r\n");
-        // NRF_LOG_RAW_INFO("presence_intervale_ms: %d  \n", (*p_config)->presence_interval_ms);
-        // NRF_LOG_RAW_INFO("range_intervale_ms: %d  \n", (*p_config)->range_interval_ms);
-        // NRF_LOG_RAW_INFO("threshold_config.eth13h: %d  \n", (*p_config)->threshold_config.eth13h);
-        // NRF_LOG_RAW_INFO("threshold_config.eth13l: %d  \n", (*p_config)->threshold_config.eth13l);
-        // NRF_LOG_RAW_INFO("threshold_config.eth24h: %d  \n", (*p_config)->threshold_config.eth24h);
-        // NRF_LOG_RAW_INFO("threshold_config.eth24l: %d  \n", (*p_config)->threshold_config.eth24l);
-        // NRF_LOG_RAW_INFO("sample_mode: %d  \n", (*p_config)->sample_mode);
     }
     else
     {
-        // NRF_LOG_INFO("\rDetection Loaded Config\r\n");
-        // NRF_LOG_RAW_INFO("presence_intervale_ms: %d  \n", (*p_config)->presence_interval_ms);
-        // NRF_LOG_RAW_INFO("range_intervale_ms: %d  \n", (*p_config)->range_interval_ms);
-        // NRF_LOG_RAW_INFO("threshold_config.eth13h: %d  \n", (*p_config)->threshold_config.eth13h);
-        // NRF_LOG_RAW_INFO("threshold_config.eth13l: %d  \n", (*p_config)->threshold_config.eth13l);
-        // NRF_LOG_RAW_INFO("threshold_config.eth24h: %d  \n", (*p_config)->threshold_config.eth24h);
-        // NRF_LOG_RAW_INFO("threshold_config.eth24l: %d  \n", (*p_config)->threshold_config.eth24l);
-        // NRF_LOG_RAW_INFO("sample_mode: %d  \n", (*p_config)->sample_mode);
-
         APP_ERROR_CHECK(rc);
     }
 

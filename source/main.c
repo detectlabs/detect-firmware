@@ -232,15 +232,15 @@ static void timers_init(void)
 }
 
 
-/**@brief Function for starting timers.
- */
-static void application_timers_start(void)
-{
-    /* YOUR_JOB: Start your timers. below is an example of how to start a timer.
-       uint32_t err_code;
-       err_code = app_timer_start(m_app_timer_id, TIMER_INTERVAL, NULL);
-       APP_ERROR_CHECK(err_code); */
-}
+// /**@brief Function for starting timers.
+//  */
+// static void application_timers_start(void)
+// {
+//     /* YOUR_JOB: Start your timers. below is an example of how to start a timer.
+//        uint32_t err_code;
+//        err_code = app_timer_start(m_app_timer_id, TIMER_INTERVAL, NULL);
+//        APP_ERROR_CHECK(err_code); */
+// }
 
 
 /**@brief Function for the Power manager.
@@ -340,7 +340,7 @@ int main(void)
     NRF_LOG_INFO("Detect firmware started.");
 
     // Start execution.
-    application_timers_start();
+    //application_timers_start();
     m_ble_advertising_start(erase_bonds);
 
     // Enter main loop.

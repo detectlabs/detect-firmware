@@ -38,14 +38,8 @@ static void gpiote_evt_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t a
 {
     uint32_t err_code;
 
-    NRF_LOG_INFO("**********************************************************************************RANGE INTERRUPT");
-
-
-    //if ((pin == m_drv_presence.cfg.pin_int) && (nrf_gpio_pin_read(m_drv_presence.cfg.pin_int) == 0))
-    //{
-        err_code = app_sched_event_put(0, 0, gpiote_evt_sceduled);
-        APP_ERROR_CHECK(err_code);
-    //}
+    err_code = app_sched_event_put(0, 0, gpiote_evt_sceduled);
+    APP_ERROR_CHECK(err_code);
 }
 
 /**@brief Initialize the GPIO tasks and events system to catch pin data ready interrupts.
@@ -133,7 +127,7 @@ uint32_t drv_range_enable(void)
 
     m_drv_range.enabled = true;
 
-    NRF_LOG_INFO("\n((((((((((((((((((  RANGE ENABLED  ((((((((((((\r\n");
+    //NRF_LOG_INFO("\n((((((((((((((((((  RANGE ENABLED  ((((((((((((\r\n");
 
     return NRF_SUCCESS;
 }
@@ -155,7 +149,7 @@ uint32_t drv_range_disable(void)
 
     gpiote_uninit(m_drv_range.cfg.pin_int);
 
-    NRF_LOG_INFO("\n((((((((((((((((((  RANGE DISABLED  ((((((((((((\r\n");
+    //NRF_LOG_INFO("\n((((((((((((((((((  RANGE DISABLED  ((((((((((((\r\n");
 
     return NRF_SUCCESS;
 }

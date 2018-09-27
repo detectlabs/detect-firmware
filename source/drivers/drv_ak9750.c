@@ -171,7 +171,6 @@ uint32_t drv_ak9750_reset(void)
 uint32_t drv_ak9750_init(void)
 {
     uint32_t err_code;
-    uint8_t  dummy;
 
     int value = -200;
 
@@ -252,13 +251,6 @@ uint32_t drv_ak9750_init(void)
     NRF_LOG_RAW_INFO("ETH24LL: %d\n", eth24_ll[0]);
     NRF_LOG_RAW_INFO("ETH24LH: %d\n", eth24_lh[0]);
 
-    // // Read Interrupt Status
-    // err_code = reg_read(INTST, &dummy);
-    // RETURN_IF_ERROR(err_code);
-
-    // err_code = reg_read(ST2, &dummy);
-    // RETURN_IF_ERROR(err_code);
-
     return NRF_SUCCESS;
 }
 
@@ -269,13 +261,9 @@ uint32_t drv_ak9750_cfg_set(drv_range_mode_t mode)
 
     DRV_CFG_CHECK(m_ak9750.p_cfg);
 
-    // // Set Mode Reg
-    // err_code = reg_write(ECNTL1, NORMAL_FC_8_8_SINGLE_SHOT_MODE);
-    // RETURN_IF_ERROR(err_code);
-
     if(mode == DRV_RANGE_MODE_MOTION)
     {
-        NRF_LOG_INFO("!!!!!! DRV_RANGE_MODE_MOTION ENABLED !!!!! \r\n");
+        //NRF_LOG_INFO("!!!!!! DRV_RANGE_MODE_MOTION ENABLED !!!!! \r\n");
 
         // Set Mode Reg
         err_code = reg_write(ECNTL1, NORMAL_FC_8_8_CONTINUOUS);
@@ -287,7 +275,7 @@ uint32_t drv_ak9750_cfg_set(drv_range_mode_t mode)
     }
     else
     {
-        NRF_LOG_INFO("!!!!!! DRV_RANGE_MODE_CONTINUOUS ENABLED !!!!! \r\n");
+        //NRF_LOG_INFO("!!!!!! DRV_RANGE_MODE_CONTINUOUS ENABLED !!!!! \r\n");
 
         // Set Mode Reg
         err_code = reg_write(ECNTL1, NORMAL_FC_8_8_SINGLE_SHOT_MODE);
@@ -373,7 +361,7 @@ uint32_t drv_ak9750_close(void)
 uint32_t drv_ak9750_one_shot(void)
 {
     uint32_t err_code;
-    uint8_t dummy;
+    //uint8_t dummy;
 
     DRV_CFG_CHECK(m_ak9750.p_cfg);
 
@@ -401,7 +389,7 @@ uint32_t drv_ak9750_get_irs(ble_dds_presence_t * presence)
     uint8_t ir3_h;
     uint8_t ir4_l;
     uint8_t ir4_h;
-    uint8_t   st1[1];
+    uint8_t   st1;
     uint8_t dummy;
 
     DRV_CFG_CHECK(m_ak9750.p_cfg);
@@ -418,7 +406,7 @@ uint32_t drv_ak9750_get_irs(ble_dds_presence_t * presence)
             return NRF_ERROR_TIMEOUT; 
         }
 
-    }while(!(st1[0] & (1<<0)));
+    }while(!(st1 & (1<<0)));
 
     err_code = reg_read(ST1, &st1);
     RETURN_IF_ERROR(err_code);

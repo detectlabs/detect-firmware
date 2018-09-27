@@ -4,14 +4,13 @@
 #include "drv_presence.h"
 #include "drv_range.h"
 
-static ble_dds_t              m_dds;            ///< Structure to identify the Thingy Environment Service.
-static ble_dds_config_t     * m_p_config;       ///< Configuraion pointer./
-static const ble_dds_config_t m_default_config = DETECTION_CONFIG_DEFAULT; ///< Default configuraion.
+static ble_dds_t              m_dds;                                        ///< Structure to identify the Thingy Environment Service.
+static ble_dds_config_t     * m_p_config;                                   ///< Configuraion pointer./
+static const ble_dds_config_t m_default_config = DETECTION_CONFIG_DEFAULT;  ///< Default configuraion.
 
 bool range_read = true;
 
 APP_TIMER_DEF(presence_timer_id);
-//APP_TIMER_DEF(presence_motion_timer_id);
 APP_TIMER_DEF(range_timer_id);
 
 
@@ -20,14 +19,13 @@ APP_TIMER_DEF(range_timer_id);
 static void drv_presence_evt_handler(drv_presence_evt_t const * p_event)
 {
     uint32_t err_code;
-    //NRF_LOG_INFO("******************************************HERE \r\n");
+
     switch (p_event->type)
     {
         case DRV_PRESENCE_EVT_DATA:
         {
             if (p_event->mode == SAMPLE_MODE_CONTINUOUS)
             {
-                NRF_LOG_INFO("******** EVENT CONTINUOUS!!!!! \r\n");
                 ble_dds_presence_t presence;
 
                 drv_presence_get(&presence);
@@ -69,14 +67,11 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
     {
         case DRV_RANGE_EVT_DATA:
         {
-            //if (p_event->mode == DRV_RANGE_MODE_CONTINUOUS)
             {
                 ble_dds_range_t range;
 
                 drv_range_get(&range);
                 (void)ble_dds_range_set(&m_dds, &range);
-                NRF_LOG_INFO("********RANGE EVENT!!!!! \r\n");
-
             }
         }
         break;
@@ -90,18 +85,6 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
     }
 }
 
-// static void presence_motion_timeout_handler(void * p_context)
-// {
-//     uint32_t err_code;
-
-
-//     NRF_LOG_INFO("!!!!  PRESENCE MOTION TIMEOUT HANDLER   !!!!! \r\n");
-//     ble_dds_presence_t presence;
-
-//     drv_presence_get(&presence);
-//     (void)ble_dds_presence_set(&m_dds, &presence);
-// }
-
 /**@brief Function for handling pressure timer timout event.
  *
  * @details This function will read the pressure at the configured rate.
@@ -110,8 +93,6 @@ static void presence_timeout_handler(void * p_context)
 {
     uint32_t err_code;
 
-    NRF_LOG_INFO("PRESENCE TIMEOUT HANDLER!!!!! \r\n");
-
     if(m_p_config->sample_mode == SAMPLE_MODE_MOTION)
     {
         ble_dds_presence_t presence;
@@ -119,14 +100,8 @@ static void presence_timeout_handler(void * p_context)
         drv_presence_get(&presence);
         (void)ble_dds_presence_set(&m_dds, &presence);
 
-        // if(range_read)
-        // {
-             NRF_LOG_INFO("                                      Range Sample !!!!! \r\n");
-             err_code = drv_range_sample();
-             APP_ERROR_CHECK(err_code);
-        //     range_read = false;
-        // }
-
+        err_code = drv_range_sample();
+        APP_ERROR_CHECK(err_code);
     }
     else
     {
@@ -142,8 +117,6 @@ static void presence_timeout_handler(void * p_context)
 static void range_timeout_handler(void * p_context)
 {
     uint32_t err_code;
-
-    NRF_LOG_INFO("RANGE TIMEOUT HANDLER!!!!! \r\n");
 
     err_code = drv_range_sample();
     APP_ERROR_CHECK(err_code);
@@ -189,8 +162,6 @@ static uint32_t presence_start(void)
 {
     uint32_t err_code;
 
-    NRF_LOG_INFO("\n((((((((((((((((((  presence start  ((((((((((((\r\n");
-
     err_code = drv_presence_enable(m_p_config->sample_mode);
     APP_ERROR_CHECK(err_code);
 
@@ -204,7 +175,7 @@ static uint32_t presence_start(void)
                         NULL);    
     }
 
-    NRF_LOG_RAW_INFO("\r####################### presence_intervale_ms: %d  \n", m_default_config.presence_interval_ms);
+    //NRF_LOG_RAW_INFO("\r########## presence_intervale_ms: %d  \n", m_default_config.presence_interval_ms);
           
     return NRF_SUCCESS;  
 }
@@ -218,9 +189,6 @@ static uint32_t range_start(void)
     err_code = drv_range_enable();
     APP_ERROR_CHECK(err_code);
 
-    err_code = drv_range_sample();
-             APP_ERROR_CHECK(err_code);
-
     if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)
     {
         err_code = drv_range_sample();
@@ -231,7 +199,7 @@ static uint32_t range_start(void)
                             NULL);  
     } 
 
-    NRF_LOG_RAW_INFO("\r########## range_intervale_ms: %d  \n", m_default_config.range_interval_ms);  
+    //NRF_LOG_RAW_INFO("\r########## range_intervale_ms: %d  \n", m_default_config.range_interval_ms);  
 
     return NRF_SUCCESS;              
 }
@@ -300,7 +268,7 @@ static void detection_on_ble_evt(ble_evt_t const * p_ble_evt)
 
     if (p_ble_evt->header.evt_id == BLE_GAP_EVT_DISCONNECTED)
     {
-        NRF_LOG_INFO("DETECTION ON BLE EVT \r\n");
+        //NRF_LOG_INFO("DETECTION ON BLE EVT \r\n");
         uint32_t err_code;
         err_code = m_detection_stop();
         APP_ERROR_CHECK(err_code);
@@ -327,10 +295,9 @@ static void ble_dds_evt_handler( ble_dds_t        * p_dds,
     switch (evt_type)
     {
         case BLE_DDS_EVT_NOTIF_PRESENCE:
-            NRF_LOG_INFO("tes_evt_handler: BLE_TES_EVT_NOTIF_PRESENCE: %d\r\n", p_dds->is_presence_notif_enabled);
+            //NRF_LOG_INFO("tes_evt_handler: BLE_TES_EVT_NOTIF_PRESENCE: %d\r\n", p_dds->is_presence_notif_enabled);
             if (p_dds->is_presence_notif_enabled)
             {
-                NRF_LOG_INFO("\n((((((((((((((((((  presence start  ((((((((((((\r\n");
                 err_code = presence_start();
                 APP_ERROR_CHECK(err_code);
             }
@@ -342,7 +309,7 @@ static void ble_dds_evt_handler( ble_dds_t        * p_dds,
             break;
 
         case BLE_DDS_EVT_NOTIF_RANGE:
-            NRF_LOG_INFO("tes_evt_handler: BLE_TES_EVT_NOTIF_RANGE: %d\r\n", p_dds->is_range_notif_enabled);
+            //NRF_LOG_INFO("tes_evt_handler: BLE_TES_EVT_NOTIF_RANGE: %d\r\n", p_dds->is_range_notif_enabled);
             if (p_dds->is_range_notif_enabled)
             {
                 err_code = range_start();
@@ -356,7 +323,7 @@ static void ble_dds_evt_handler( ble_dds_t        * p_dds,
             break;
         case BLE_DDS_EVT_CONFIG_RECEIVED:
         {
-            NRF_LOG_DEBUG("dds_evt_handler: BLE_DDS_EVT_CONFIG_RECEIVED: %d\r\n", length);
+            //NRF_LOG_DEBUG("dds_evt_handler: BLE_DDS_EVT_CONFIG_RECEIVED: %d\r\n", length);
             APP_ERROR_CHECK_BOOL(length == sizeof(ble_dds_config_t));
 
             err_code = m_det_flash_config_store((ble_dds_config_t *)p_data);
@@ -398,7 +365,7 @@ static uint32_t detection_service_init(bool major_minor_fw_ver_changed)
     err_code = config_verify(m_p_config);
     APP_ERROR_CHECK(err_code);
 
-    NRF_LOG_INFO("\rDetection Loaded Config\r\n");
+    NRF_LOG_INFO("\r#################  Detection Loaded Config  ######################\r\n");
     NRF_LOG_RAW_INFO("presence_intervale_ms: %d  \n", (m_p_config)->presence_interval_ms);
     NRF_LOG_RAW_INFO("range_intervale_ms: %d  \n", (m_p_config)->range_interval_ms);
     NRF_LOG_RAW_INFO("threshold_config.eth13h: %d  \n", (m_p_config)->threshold_config.eth13h);
@@ -437,7 +404,6 @@ static uint32_t presence_sensor_init(const nrf_drv_twi_t * p_twi_instance)
     init_params.p_twi_instance          = p_twi_instance;
     init_params.p_twi_cfg               = &twi_config;
     init_params.evt_handler             = drv_presence_evt_handler;
-    //init_params.mode                    = (m_p_config)->sample_mode;
 
     return drv_presence_init(&init_params);
 }
@@ -460,7 +426,6 @@ static uint32_t range_sensor_init(const nrf_drv_twi_t * p_twi_instance)
     init_params.p_twi_instance          = p_twi_instance;
     init_params.p_twi_cfg               = &twi_config;
     init_params.evt_handler             = drv_range_evt_handler;
-    //init_params.mode                    = (m_p_config)->sample_mode;
 
     return drv_range_init(&init_params);
 }
@@ -477,8 +442,6 @@ uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t 
     p_handle->ble_evt_cb = detection_on_ble_evt;
     p_handle->init_cb    = detection_service_init;
 
-    NRF_LOG_INFO("*** Presence Init ****\r\n");
-
     /**@brief Init drivers */
     err_code = presence_sensor_init(p_params->p_twi_instance);
     APP_ERROR_CHECK(err_code);
@@ -490,10 +453,6 @@ uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t 
     /**@brief Init application timers */
     err_code = app_timer_create(&presence_timer_id, APP_TIMER_MODE_REPEATED, presence_timeout_handler);
     APP_ERROR_CHECK(err_code);
-
-    // /**@brief Init application timers */
-    // err_code = app_timer_create(&presence_motion_timer_id, APP_TIMER_MODE_REPEATED, presence_motion_timeout_handler);
-    // APP_ERROR_CHECK(err_code);
 
     /**@brief Init application timers */
     err_code = app_timer_create(&range_timer_id, APP_TIMER_MODE_REPEATED, range_timeout_handler);

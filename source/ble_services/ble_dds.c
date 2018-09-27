@@ -45,8 +45,6 @@ static void on_write(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
 {
     ble_gatts_evt_write_t const * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
 
-    NRF_LOG_INFO("WRITE HANDLER!!!!! \r\n");
-
     if ( (p_evt_write->handle == p_dds->presence_handles.cccd_handle) &&
          (p_evt_write->len == 2) )
     {
@@ -57,7 +55,7 @@ static void on_write(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
         if (p_dds->is_presence_notif_enabled != notif_enabled)
         {
 
-            NRF_LOG_INFO("NOTIF PRESENCE!!!!! \r\n");
+            //NRF_LOG_INFO("******** NOTIF PRESENCE **********\r\n");
             p_dds->is_presence_notif_enabled = notif_enabled;
 
             if (p_dds->evt_handler != NULL)
@@ -75,7 +73,7 @@ static void on_write(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
 
         if (p_dds->is_range_notif_enabled != notif_enabled)
         {
-            NRF_LOG_INFO("NOTIF RANGE!!!!! \r\n");
+            //NRF_LOG_INFO("******** NOTIF RANGE **********\r\n");
 
             p_dds->is_range_notif_enabled = notif_enabled;
 
