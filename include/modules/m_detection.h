@@ -26,7 +26,7 @@ typedef struct
         .eth24h            = 100,                      \
         .eth24l            = 100                       \
     },                                                 \
-    .sample_mode          = SAMPLE_MODE_MOTION         \
+    .sample_mode          = SAMPLE_MODE_MOTION     \
 }
 
 uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t * p_params);

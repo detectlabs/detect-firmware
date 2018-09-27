@@ -72,7 +72,7 @@ uint32_t drv_presence_init(drv_presence_init_t * p_params);
  *
  * @retval NRF_SUCCESS             If initialization was successful.
  */
-uint32_t drv_presence_enable(void);
+uint32_t drv_presence_enable(ble_dds_sample_mode_t mode);
 
 /**@brief Function for disabling the presence sensor.
  *

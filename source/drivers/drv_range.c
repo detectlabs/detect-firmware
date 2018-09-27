@@ -117,7 +117,8 @@ uint32_t drv_range_enable(void)
     {
         return NRF_SUCCESS;
     }
-    
+
+    //We need to re-init for some reason
     err_code = drv_vl53l0x_open(&m_drv_range.cfg);
     RETURN_IF_ERROR(err_code);
 

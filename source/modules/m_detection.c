@@ -191,7 +191,7 @@ static uint32_t presence_start(void)
 
     NRF_LOG_INFO("\n((((((((((((((((((  presence start  ((((((((((((\r\n");
 
-    err_code = drv_presence_enable();
+    err_code = drv_presence_enable(m_p_config->sample_mode);
     APP_ERROR_CHECK(err_code);
 
     if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)
@@ -437,9 +437,7 @@ static uint32_t presence_sensor_init(const nrf_drv_twi_t * p_twi_instance)
     init_params.p_twi_instance          = p_twi_instance;
     init_params.p_twi_cfg               = &twi_config;
     init_params.evt_handler             = drv_presence_evt_handler;
-    init_params.mode                    = m_default_config.sample_mode;
-
-    NRF_LOG_RAW_INFO("\r####################### m_p_config->sample_mode: %d  \n", m_p_config->sample_mode);
+    //init_params.mode                    = (m_p_config)->sample_mode;
 
     return drv_presence_init(&init_params);
 }
@@ -462,7 +460,7 @@ static uint32_t range_sensor_init(const nrf_drv_twi_t * p_twi_instance)
     init_params.p_twi_instance          = p_twi_instance;
     init_params.p_twi_cfg               = &twi_config;
     init_params.evt_handler             = drv_range_evt_handler;
-    init_params.mode                    = m_default_config.sample_mode;
+    //init_params.mode                    = (m_p_config)->sample_mode;
 
     return drv_range_init(&init_params);
 }
