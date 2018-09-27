@@ -38,7 +38,7 @@ static void gpiote_evt_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t a
 {
     uint32_t err_code;
 
-    //NRF_LOG_INFO("**********************************************************************************RANGE INTERRUPT");
+    NRF_LOG_INFO("**********************************************************************************RANGE INTERRUPT");
 
 
     //if ((pin == m_drv_presence.cfg.pin_int) && (nrf_gpio_pin_read(m_drv_presence.cfg.pin_int) == 0))
@@ -117,11 +117,22 @@ uint32_t drv_range_enable(void)
     {
         return NRF_SUCCESS;
     }
+    
+    err_code = drv_vl53l0x_open(&m_drv_range.cfg);
+    RETURN_IF_ERROR(err_code);
+
+    err_code = drv_vl53l0x_init();
+    RETURN_IF_ERROR(err_code);
+
+    err_code = drv_vl53l0x_close();
+    RETURN_IF_ERROR(err_code);
 
     err_code = gpiote_init(m_drv_range.cfg.pin_int);
     RETURN_IF_ERROR(err_code);
 
     m_drv_range.enabled = true;
+
+    NRF_LOG_INFO("\n((((((((((((((((((  RANGE ENABLED  ((((((((((((\r\n");
 
     return NRF_SUCCESS;
 }
@@ -142,6 +153,8 @@ uint32_t drv_range_disable(void)
     m_drv_range.enabled = false;
 
     gpiote_uninit(m_drv_range.cfg.pin_int);
+
+    NRF_LOG_INFO("\n((((((((((((((((((  RANGE DISABLED  ((((((((((((\r\n");
 
     return NRF_SUCCESS;
 }
