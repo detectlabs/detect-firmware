@@ -42,7 +42,7 @@ uint32_t drv_ak9750_clear_int(void);
 
 uint32_t drv_ak9750_read_int(uint8_t * status);
 
-uint32_t drv_ak9750_cfg_set(drv_range_mode_t mode);
+uint32_t drv_ak9750_cfg_set(ble_dds_config_t * config);
 
 uint32_t drv_ak9750_get_irs(ble_dds_presence_t * presence);
 

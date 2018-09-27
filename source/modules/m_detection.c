@@ -162,7 +162,7 @@ static uint32_t presence_start(void)
 {
     uint32_t err_code;
 
-    err_code = drv_presence_enable(m_p_config->sample_mode);
+    err_code = drv_presence_enable(m_p_config);
     APP_ERROR_CHECK(err_code);
 
     if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)

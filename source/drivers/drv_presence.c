@@ -171,7 +171,7 @@ uint32_t drv_presence_init(drv_presence_init_t * p_params)
     return NRF_SUCCESS;
 }
 
-uint32_t drv_presence_enable(ble_dds_sample_mode_t mode)
+uint32_t drv_presence_enable(ble_dds_config_t * config)
 {
     uint32_t err_code;
 
@@ -180,7 +180,7 @@ uint32_t drv_presence_enable(ble_dds_sample_mode_t mode)
         return NRF_SUCCESS;
     }
 
-    m_drv_presence.mode = mode;
+    m_drv_presence.mode = config->sample_mode;
 
     err_code = gpiote_init(m_drv_presence.cfg.pin_int);
     RETURN_IF_ERROR(err_code);
@@ -188,7 +188,7 @@ uint32_t drv_presence_enable(ble_dds_sample_mode_t mode)
     err_code = drv_ak9750_open(&m_drv_presence.cfg);
     APP_ERROR_CHECK(err_code);
 
-    err_code = drv_ak9750_cfg_set(mode);
+    err_code = drv_ak9750_cfg_set(config);
     RETURN_IF_ERROR(err_code);
 
     err_code = drv_ak9750_close();

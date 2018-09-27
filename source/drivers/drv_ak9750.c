@@ -170,13 +170,109 @@ uint32_t drv_ak9750_reset(void)
 
 uint32_t drv_ak9750_init(void)
 {
+    // uint32_t err_code;
+
+    // int value = -200;
+
+    // uint8_t lb = value;
+    // uint8_t ub = value >> 8;
+
+    // uint8_t eth13_hl[1];
+    // uint8_t eth13_hh[1];
+    // uint8_t eth13_ll[1];
+    // uint8_t eth13_lh[1];
+
+    // uint8_t eth24_hl[1];
+    // uint8_t eth24_hh[1];
+    // uint8_t eth24_ll[1];
+    // uint8_t eth24_lh[1];
+
+    DRV_CFG_CHECK(m_ak9750.p_cfg);
+
+    drv_ak9750_reset();
+
+    // //Setting ETH13H High Threshold
+    // err_code = reg_write(ETH13H_L, 0xC8);
+    // RETURN_IF_ERROR(err_code);
+    // err_code = reg_write(ETH13H_H, 0x00);
+    // RETURN_IF_ERROR(err_code);
+
+    // //Setting hreshold
+    // err_code = reg_write(ETH13L_L, lb);
+    // RETURN_IF_ERROR(err_code);
+    // err_code = reg_write(ETH13L_H, ub);
+    // RETURN_IF_ERROR(err_code);
+
+    // //Setting hreshold
+    // err_code = reg_write(ETH24H_L, 0xC8);
+    // RETURN_IF_ERROR(err_code);
+    // err_code = reg_write(ETH24H_H, 0x00);
+    // RETURN_IF_ERROR(err_code);
+
+    // //Setting hreshold
+    // err_code = reg_write(ETH24L_L, lb);
+    // RETURN_IF_ERROR(err_code);
+    // err_code = reg_write(ETH24L_H, ub);
+    // RETURN_IF_ERROR(err_code);
+
+    // //Read ETH13H Threshold values
+    // err_code = reg_read(ETH13H_L, eth13_hl);
+    // RETURN_IF_ERROR(err_code);
+    // err_code = reg_read(ETH13H_H, eth13_hh);
+    // RETURN_IF_ERROR(err_code);
+
+    // //Read ETd values
+    // err_code = reg_read(ETH13L_L, eth13_ll);
+    // RETURN_IF_ERROR(err_code);
+    // err_code = reg_read(ETH13L_H, eth13_lh);
+    // RETURN_IF_ERROR(err_code);
+
+    // //Read ETd values
+    // err_code = reg_read(ETH24H_L, eth24_hl);
+    // RETURN_IF_ERROR(err_code);
+    // err_code = reg_read(ETH24H_H, eth24_hh);
+    // RETURN_IF_ERROR(err_code);
+
+    // //Read ETd values
+    // err_code = reg_read(ETH24L_L, eth24_ll);
+    // RETURN_IF_ERROR(err_code);
+    // reg_read(ETH24L_H, eth24_lh);
+    // RETURN_IF_ERROR(err_code);
+
+    // NRF_LOG_RAW_INFO("ETH13HL: %d\n", eth13_hl[0]);
+    // NRF_LOG_RAW_INFO("ETH13HH: %d\n", eth13_hh[0]);
+
+    // NRF_LOG_RAW_INFO("ETH13LL: %d\n", eth13_ll[0]);
+    // NRF_LOG_RAW_INFO("ETH13LH: %d\n", eth13_lh[0]);
+
+    // NRF_LOG_RAW_INFO("ETH24HL: %d\n", eth24_hl[0]);
+    // NRF_LOG_RAW_INFO("ETH24HH: %d\n", eth24_hh[0]);
+
+    // NRF_LOG_RAW_INFO("ETH24LL: %d\n", eth24_ll[0]);
+    // NRF_LOG_RAW_INFO("ETH24LH: %d\n", eth24_lh[0]);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t drv_ak9750_cfg_set(ble_dds_config_t * config)
+{
     uint32_t err_code;
+    uint8_t  dummy;
 
-    int value = -200;
+    // int value = -200;
+    // uint8_t lb = value;
+    // uint8_t ub = value >> 8;
 
-    uint8_t lb = value;
-    uint8_t ub = value >> 8;
+    uint8_t lb;
+    uint8_t ub;
 
+    // Load Config Values
+    int16_t eth13h = config->threshold_config.eth13h;              
+    int16_t eth13l = config->threshold_config.eth13l;
+    int16_t eth24h = config->threshold_config.eth24h;                              
+    int16_t eth24l = config->threshold_config.eth24l;
+
+    // Read out vars
     uint8_t eth13_hl[1];
     uint8_t eth13_hh[1];
     uint8_t eth13_ll[1];
@@ -189,13 +285,17 @@ uint32_t drv_ak9750_init(void)
 
     DRV_CFG_CHECK(m_ak9750.p_cfg);
 
-    drv_ak9750_reset();
+    lb = eth13h;
+    ub = eth13h >> 8;
 
     //Setting ETH13H High Threshold
-    err_code = reg_write(ETH13H_L, 0xC8);
+    err_code = reg_write(ETH13H_L, lb);
     RETURN_IF_ERROR(err_code);
-    err_code = reg_write(ETH13H_H, 0x00);
+    err_code = reg_write(ETH13H_H, ub);
     RETURN_IF_ERROR(err_code);
+
+    lb = eth13l;
+    ub = eth13l >> 8;
 
     //Setting hreshold
     err_code = reg_write(ETH13L_L, lb);
@@ -203,11 +303,17 @@ uint32_t drv_ak9750_init(void)
     err_code = reg_write(ETH13L_H, ub);
     RETURN_IF_ERROR(err_code);
 
+    lb = eth24h;
+    ub = eth24h >> 8;
+
     //Setting hreshold
-    err_code = reg_write(ETH24H_L, 0xC8);
+    err_code = reg_write(ETH24H_L, lb);
     RETURN_IF_ERROR(err_code);
-    err_code = reg_write(ETH24H_H, 0x00);
+    err_code = reg_write(ETH24H_H, ub);
     RETURN_IF_ERROR(err_code);
+
+    lb = eth24l;
+    ub = eth24l >> 8;
 
     //Setting hreshold
     err_code = reg_write(ETH24L_L, lb);
@@ -251,17 +357,7 @@ uint32_t drv_ak9750_init(void)
     NRF_LOG_RAW_INFO("ETH24LL: %d\n", eth24_ll[0]);
     NRF_LOG_RAW_INFO("ETH24LH: %d\n", eth24_lh[0]);
 
-    return NRF_SUCCESS;
-}
-
-uint32_t drv_ak9750_cfg_set(drv_range_mode_t mode)
-{
-    uint32_t err_code;
-    uint8_t  dummy;
-
-    DRV_CFG_CHECK(m_ak9750.p_cfg);
-
-    if(mode == DRV_RANGE_MODE_MOTION)
+    if(config->sample_mode == SAMPLE_MODE_MOTION)
     {
         //NRF_LOG_INFO("!!!!!! DRV_RANGE_MODE_MOTION ENABLED !!!!! \r\n");
 
@@ -273,7 +369,7 @@ uint32_t drv_ak9750_cfg_set(drv_range_mode_t mode)
         err_code = reg_write(EINTEN, DRI_DISABLE_ALL_THRESHOLD);
         RETURN_IF_ERROR(err_code);
     }
-    else
+    else if(config->sample_mode == SAMPLE_MODE_CONTINUOUS)
     {
         //NRF_LOG_INFO("!!!!!! DRV_RANGE_MODE_CONTINUOUS ENABLED !!!!! \r\n");
 
@@ -284,6 +380,10 @@ uint32_t drv_ak9750_cfg_set(drv_range_mode_t mode)
         // Enable Interrupt for DRI
         err_code = reg_write(EINTEN, DRI_ENABLE_ONLY);
         RETURN_IF_ERROR(err_code);
+    }
+    else
+    {
+        NRF_LOG_INFO("AK9750 - !!!!!! UNKNOWN SAMPLE MODE !!!!! \r\n");
     }
 
     // Read Interrupt Status
