@@ -272,7 +272,7 @@ int main(void)
     board_init(&m_conn_handle, &m_advertising, &erase_bonds);
     detect_init();
 
-    NRF_LOG_INFO("Buttonless DFU Application started.");
+    NRF_LOG_INFO("Detect firmware started.");
 
     // Start execution.
     application_timers_start();

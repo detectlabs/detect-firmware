@@ -1,5 +1,7 @@
 #include "m_ble.h"
 #include "m_board.h"
+#include "m_ble_flash.h"
+#include "ble_dcs.h"
 
 #define APP_BLE_OBSERVER_PRIO           3                                           /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 #define APP_BLE_CONN_CFG_TAG            1                                           /**< A tag identifying the SoftDevice BLE configuration. */
@@ -8,8 +10,7 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                      /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define DEVICE_NAME                     "Nordic_Buttonless"                         /**< Name of device. Will be included in the advertising data. */
-#define MANUFACTURER_NAME               "NordicSemiconductor"                       /**< Manufacturer. Will be passed to Device Information Service. */
+#define MANUFACTURER_NAME               "Detect Labs"                       /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                300                                         /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 #define APP_ADV_DURATION                18000                                       /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
 
@@ -27,9 +28,12 @@
 #define SEC_PARAM_MIN_KEY_SIZE          7                                           /**< Minimum encryption key size. */
 #define SEC_PARAM_MAX_KEY_SIZE          16                                          /**< Maximum encryption key size. */
 
-
 NRF_BLE_GATT_DEF(m_gatt);                                                           /**< GATT module instance. */
 NRF_BLE_QWR_DEF(m_qwr);                                                             /**< Context for the Queued Write module.*/
+
+static ble_dcs_t                  m_dcs;
+static ble_dcs_params_t         * m_ble_config;
+static const ble_dcs_params_t     m_ble_default_config = DETECT_CONFIG_DEFAULT;
 
 static ble_advertising_t * p_m_advertising;
 static uint16_t * p_m_conn_handle;
@@ -306,7 +310,7 @@ static void peer_manager_init()
  * @details This function sets up all the necessary GAP (Generic Access Profile) parameters of the
  *          device including the device name, appearance, and the preferred connection parameters.
  */
-static void gap_params_init(void)
+uint32_t gap_params_init(void)
 {
     uint32_t                err_code;
     ble_gap_conn_params_t   gap_conn_params;
@@ -315,8 +319,8 @@ static void gap_params_init(void)
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
     err_code = sd_ble_gap_device_name_set(&sec_mode,
-                                          (const uint8_t *)DEVICE_NAME,
-                                          strlen(DEVICE_NAME));
+                                          m_ble_config->dev_name.name,
+                                          strlen((const char *)m_ble_config->dev_name.name));
     APP_ERROR_CHECK(err_code);
 
     /* YOUR_JOB: Use an appearance value matching the application's use case.
@@ -325,13 +329,44 @@ static void gap_params_init(void)
 
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
 
-    gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
-    gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
-    gap_conn_params.slave_latency     = SLAVE_LATENCY;
-    gap_conn_params.conn_sup_timeout  = CONN_SUP_TIMEOUT;
+    gap_conn_params.min_conn_interval = m_ble_config->conn_params.min_conn_int;
+    gap_conn_params.max_conn_interval = m_ble_config->conn_params.max_conn_int;
+    gap_conn_params.slave_latency     = m_ble_config->conn_params.slave_latency;
+    gap_conn_params.conn_sup_timeout  = m_ble_config->conn_params.sup_timeout;
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
-    APP_ERROR_CHECK(err_code);
+
+    if (err_code == NRF_ERROR_INVALID_PARAM)
+    { 
+        // Use default config
+        m_ble_config->conn_params.min_conn_int  = (uint16_t)MSEC_TO_UNITS(MIN_CONN_INTERVAL_MS, UNIT_1_25_MS);
+        m_ble_config->conn_params.max_conn_int  = MSEC_TO_UNITS(MAX_CONN_INTERVAL_MS, UNIT_1_25_MS);
+        m_ble_config->conn_params.slave_latency = SLAVE_LATENCY;
+        m_ble_config->conn_params.sup_timeout   = MSEC_TO_UNITS(CONN_SUP_TIMEOUT_MS, UNIT_10_MS);
+
+        err_code = m_ble_flash_config_store(m_ble_config);
+        if (err_code != NRF_SUCCESS)
+        {
+            return err_code;
+        }
+
+        gap_conn_params.min_conn_interval = (uint16_t)MSEC_TO_UNITS(MIN_CONN_INTERVAL_MS, UNIT_1_25_MS);
+        gap_conn_params.max_conn_interval = MSEC_TO_UNITS(MAX_CONN_INTERVAL_MS, UNIT_1_25_MS);
+        gap_conn_params.slave_latency     = SLAVE_LATENCY;
+        gap_conn_params.conn_sup_timeout  = MSEC_TO_UNITS(CONN_SUP_TIMEOUT_MS, UNIT_10_MS);
+
+        err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
+        if (err_code != NRF_SUCCESS)
+        {
+            return err_code;
+        }
+    }
+    else if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+
+    return NRF_SUCCESS;
 }
 
 
@@ -389,6 +424,66 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
     APP_ERROR_HANDLER(nrf_error);
 }
 
+/**@brief Function for handling detect configuration events.
+ */
+static void dcs_evt_handler (ble_dcs_t        * p_dcs,
+                             ble_dcs_evt_type_t evt_type,
+                             uint8_t  const   * p_data,
+                             uint16_t           length)
+{
+    bool update_flash = false;
+
+    NRF_LOG_INFO("dcs_evt_handler:  %d.",evt_type);
+    switch (evt_type)
+    {
+        case BLE_DCS_EVT_DEV_NAME:
+            if (length <= BLE_TCS_DEVICE_NAME_LEN_MAX)
+            {
+                memcpy(m_ble_config->dev_name.name, p_data, length);
+                m_ble_config->dev_name.name[length] = 0;
+                m_ble_config->dev_name.len = length;
+                update_flash = true;
+            }
+            break;
+        case BLE_DCS_EVT_ADV_PARAM:
+            if (length == sizeof(ble_dcs_adv_params_t))
+            {
+                memcpy(&m_ble_config->adv_params, p_data, length);
+
+                update_flash = true;
+            }
+            break;
+        case BLE_DCS_EVT_CONN_PARAM:
+            if (length == sizeof(ble_dcs_conn_params_t))
+            {
+                uint32_t              err_code;
+                ble_gap_conn_params_t gap_conn_params;
+
+                memcpy(&m_ble_config->conn_params, p_data, length);
+                memset(&gap_conn_params, 0, sizeof(gap_conn_params));
+
+                gap_conn_params.min_conn_interval = m_ble_config->conn_params.min_conn_int;
+                gap_conn_params.max_conn_interval = m_ble_config->conn_params.max_conn_int;
+                gap_conn_params.slave_latency     = m_ble_config->conn_params.slave_latency;
+                gap_conn_params.conn_sup_timeout  = m_ble_config->conn_params.sup_timeout;
+
+                err_code = ble_conn_params_change_conn_params(*p_m_conn_handle, &gap_conn_params);
+                APP_ERROR_CHECK(err_code);
+
+                update_flash = true;
+            }
+            break;
+    }
+
+    if (update_flash)
+    {
+        uint32_t err_code;
+
+        err_code = m_ble_flash_config_store(m_ble_config);
+        APP_ERROR_CHECK(err_code);
+    }
+}
+
 
 /**@brief Function for initializing services that will be used by the application.
  */
@@ -397,6 +492,8 @@ static void services_init(void)
     uint32_t                  err_code;
     nrf_ble_qwr_init_t        qwr_init  = {0};
     ble_dfu_buttonless_init_t dfus_init = {0};
+
+    ble_dcs_init_t            dcs_init  = {0};
 
     // Initialize Queued Write Module.
     qwr_init.error_handler = nrf_qwr_error_handler;
@@ -413,6 +510,18 @@ static void services_init(void)
 
     err_code = ble_dfu_buttonless_init(&dfus_init);
     APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Added dfu service");
+
+    //THIS IS WHERE WE WILL ITERATE THROUGH AND INIT ALL OTHER SERVICES
+
+    dcs_init.p_init_vals = m_ble_config;
+
+    dcs_init.evt_handler = dcs_evt_handler;
+
+    err_code = ble_dcs_init(&m_dcs, &dcs_init);
+    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("ble_dcs_init:  %d.",err_code);
 
     /* YOUR_JOB: Add code to initialize the services used by the application.
        uint32_t                           err_code;
@@ -448,6 +557,7 @@ static void conn_params_error_handler(uint32_t nrf_error)
 {
     APP_ERROR_HANDLER(nrf_error);
 }
+
 
 /**@brief Function for handling the Connection Parameters Module.
  *
@@ -503,6 +613,10 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 {
     uint32_t err_code = NRF_SUCCESS;
 
+    NRF_LOG_INFO("ble_evt_handler:  %d.",p_ble_evt->header.evt_id);
+
+    ble_dcs_on_ble_evt(&m_dcs, p_ble_evt);
+
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_DISCONNECTED:
@@ -551,6 +665,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
     }
 }
 
+
 /**@brief Function for initializing the BLE stack.
  *
  * @details Initializes the SoftDevice and the BLE event interrupt.
@@ -578,18 +693,31 @@ static void ble_stack_init(void)
 
 uint32_t m_ble_init(uint16_t * _m_conn_handle, ble_advertising_t * _m_advertising)
 {
+    uint32_t err_code;
+
     p_m_conn_handle = _m_conn_handle;
     p_m_advertising = _m_advertising;
     
     ble_stack_init();
 
+    /**@brief Load configuration from flash. */
+    err_code = m_ble_flash_init(&m_ble_default_config, &m_ble_config);
+    APP_ERROR_CHECK(err_code);
+
     peer_manager_init();
-    gap_params_init();
+
+    err_code = gap_params_init();
+    if (err_code != NRF_SUCCESS)
+    {
+        NRF_LOG_ERROR("gap_params_init failed - %d\r\n", err_code);
+        return err_code;
+    }
+    
     gatt_init();
     advertising_init();
 
     services_init();
     conn_params_init();
 
-    return 0;
+    return NRF_SUCCESS;
 }
