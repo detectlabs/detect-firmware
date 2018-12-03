@@ -44,7 +44,7 @@
 #define NRF_LOG_YELLOW(...) NRF_LOG_INFO(COLOR_YELLOW __VA_ARGS__)
 #define NRF_LOG_GREEN(...)  NRF_LOG_INFO(COLOR_GREEN  __VA_ARGS__)
 
-#define DEVICE_NAME                     "Detect"                                    /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "DetectA0A0"                                /**< Name of device. Will be included in the advertising data. */
 #define APP_ADV_INTERVAL_MS             380                                         /**< The advertising interval in ms. */
 #define APP_ADV_TIMEOUT_IN_SECONDS      180                                         /**< The advertising timeout in s. */
 
@@ -71,7 +71,7 @@ Version numbers are changed for releases. */
     .dev_name =                                       \
     {                                                 \
         .name = DEVICE_NAME,                          \
-        .len = 6                                      \
+        .len = 10                                     \
     },                                                \
     .adv_params =                                     \
     {                                                 \

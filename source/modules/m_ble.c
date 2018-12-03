@@ -510,8 +510,8 @@ static uint32_t services_init(m_ble_service_handle_t * p_service_handles, uint32
 
     // Initialize the async SVCI interface to bootloader.
     //COMMENT THIS SERVICE OUT TO BYPASS BOOTLOADER
-    //err_code = ble_dfu_buttonless_async_svci_init();
-    //APP_ERROR_CHECK(err_code);
+    err_code = ble_dfu_buttonless_async_svci_init();
+    APP_ERROR_CHECK(err_code);
 
     dfus_init.evt_handler = ble_dfu_evt_handler;
 
