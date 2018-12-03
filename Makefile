@@ -3,7 +3,7 @@ TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := nordic_nRF5
-PROJ_DIR := ./
+PROJ_DIR := .
 
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   LINKER_SCRIPT  := ./source/ble_app_buttonless_dfu_gcc_nrf52.ld
@@ -80,10 +80,21 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twim.c \
+  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_twi.c \
   $(PROJ_DIR)/source/modules/m_ble.c \
   $(PROJ_DIR)/source/modules/m_ble_flash.c \
   $(PROJ_DIR)/source/modules/m_board.c \
+  $(PROJ_DIR)/source/modules/m_detection.c \
+  $(PROJ_DIR)/source/modules/m_detection_flash.c \
   $(PROJ_DIR)/source/ble_services/ble_dcs.c \
+  $(PROJ_DIR)/source/ble_services/ble_dds.c \
+  $(PROJ_DIR)/source/drivers/drv_presence.c \
+  $(PROJ_DIR)/source/drivers/drv_range.c \
+  $(PROJ_DIR)/source/drivers/drv_vl53l0x.c \
+  $(PROJ_DIR)/source/drivers/drv_ak9750.c \
+  $(PROJ_DIR)/source/util/twi_manager.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -133,7 +144,9 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/svc \
   $(PROJ_DIR)/config \
   $(PROJ_DIR)/include/modules \
+  $(PROJ_DIR)/include/drivers \
   $(PROJ_DIR)/include/ble_services \
+  $(PROJ_DIR)/include/util \
 
 # Libraries common to all targets
 LIB_FILES += \

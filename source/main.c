@@ -88,12 +88,32 @@
 
 #include "m_ble.h"
 #include "m_board.h"
+#include "twi_manager.h"
+#include "m_detection.h"
+#include "app_scheduler.h"
+
+#define DETECT_SERVICES_MAX             5
+
+#define DETECT_SERVICE_DETECTION        0
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
+
+#define SCHED_MAX_EVENT_DATA_SIZE   MAX(APP_TIMER_SCHED_EVENT_DATA_SIZE, BLE_STACK_HANDLER_SCHED_EVT_SIZE) /**< Maximum size of scheduler events. */
+#define SCHED_QUEUE_SIZE            60  /**< Maximum number of events in the scheduler queue. */
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                            /**< Handle of the current connection. */
 BLE_ADVERTISING_DEF(m_advertising);                                                 /**< Advertising module instance. */
 
+static m_ble_service_handle_t  m_ble_service_handles[DETECT_SERVICES_MAX];
+
+
+/**
+ * @brief TWI master instance.
+ *
+ * Instance of TWI master driver that will be used for communication with simulated
+ * EEPROM memory.
+ */
+static const nrf_drv_twi_t m_twi_master = NRF_DRV_TWI_INSTANCE(MASTER_TWI_INST);
 
 /**@brief Handler for shutdown preparation.
  *
@@ -195,6 +215,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 static void timers_init(void)
 {
 
+    APP_SCHED_INIT(APP_TIMER_SCHED_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
     // Initialize timer module.
     uint32_t err_code = app_timer_init();
     APP_ERROR_CHECK(err_code);
@@ -211,15 +232,15 @@ static void timers_init(void)
 }
 
 
-/**@brief Function for starting timers.
- */
-static void application_timers_start(void)
-{
-    /* YOUR_JOB: Start your timers. below is an example of how to start a timer.
-       uint32_t err_code;
-       err_code = app_timer_start(m_app_timer_id, TIMER_INTERVAL, NULL);
-       APP_ERROR_CHECK(err_code); */
-}
+// /**@brief Function for starting timers.
+//  */
+// static void application_timers_start(void)
+// {
+//     /* YOUR_JOB: Start your timers. below is an example of how to start a timer.
+//        uint32_t err_code;
+//        err_code = app_timer_start(m_app_timer_id, TIMER_INTERVAL, NULL);
+//        APP_ERROR_CHECK(err_code); */
+// }
 
 
 /**@brief Function for the Power manager.
@@ -245,15 +266,57 @@ static void idle_state_handle(void)
     }
 }
 
+/**@brief Function for handling BLE events.
+ */
+static void detect_ble_evt_handler(m_ble_evt_t * p_evt)
+{
+    switch (p_evt->evt_type)
+    {
+        case detect_ble_evt_connected:
+            //NRF_LOG_INFO(NRF_LOG_COLOR_CODE_GREEN, "Thingy_ble_evt_connected \r\n");
+            break;
+
+        case detect_ble_evt_disconnected:
+            //NRF_LOG_INFO(NRF_LOG_COLOR_CODE_YELLOW, "Thingy_ble_evt_disconnected \r\n");
+            NRF_LOG_FINAL_FLUSH();
+            //nrf_delay_ms(5);
+            //NVIC_SystemReset();
+            break;
+
+        case detect_ble_evt_timeout:
+            //NRF_LOG_INFO(NRF_LOG_COLOR_CODE_YELLOW, "Thingy_ble_evt_timeout \r\n");
+            //sleep_mode_enter();
+            //NVIC_SystemReset();
+            break;
+    }
+}
+
 
 /**@brief Function for initializaing the Detect.
  */
 static void detect_init(void)
 {
     uint32_t err_code;
+    m_detection_init_t     det_params;
+    m_ble_init_t           ble_params;
+
+    /**@brief Initialize the TWI manager. */
+    err_code = twi_manager_init(APP_IRQ_PRIORITY_HIGHEST);
+    APP_ERROR_CHECK(err_code);
+
+    /**@brief Initialize detection module. */
+    det_params.p_twi_instance = &m_twi_master;
+    err_code = m_detection_init(&m_ble_service_handles[DETECT_SERVICE_DETECTION],
+                                  &det_params);
+    APP_ERROR_CHECK(err_code);
 
     /**@brief Initialize BLE handling module. */
-    err_code = m_ble_init(&m_conn_handle, &m_advertising);
+    ble_params.evt_handler       = detect_ble_evt_handler;
+    ble_params.p_service_handles = m_ble_service_handles;
+    ble_params.service_num       = DETECT_SERVICES_MAX;
+
+    /**@brief Initialize BLE handling module. */
+    err_code = m_ble_init(&ble_params, &m_conn_handle, &m_advertising);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -267,6 +330,8 @@ int main(void)
     // Initialize.
     log_init();
 
+    NRF_LOG_INFO("******************* Firmware Start **********************");
+
     timers_init();
     //Init board and timers before ble
     board_init(&m_conn_handle, &m_advertising, &erase_bonds);
@@ -275,12 +340,14 @@ int main(void)
     NRF_LOG_INFO("Detect firmware started.");
 
     // Start execution.
-    application_timers_start();
+    //application_timers_start();
     m_ble_advertising_start(erase_bonds);
 
     // Enter main loop.
     for (;;)
     {
+        app_sched_execute();
+
         idle_state_handle();
     }
 }

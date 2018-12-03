@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "m_ble_flash.h"
+#include "app_scheduler.h"
 
 #include "fds.h"
 #include "nrf_log.h"
@@ -122,17 +123,6 @@ static void fds_evt_handler(fds_evt_t const * p_evt)
     }
 }
 
-
-/**@brief   Wait for fds to initialize. */
-static void wait_for_fds_ready(void)
-{
-    while (!m_fds_initialized)
-    {
-       nrf_pwr_mgmt_run();
-    }
-}
-
-
 uint32_t m_ble_flash_config_store(const ble_dcs_params_t * p_config)
 {
     ret_code_t rc;
@@ -158,7 +148,6 @@ uint32_t m_ble_flash_config_store(const ble_dcs_params_t * p_config)
 
     return NRF_SUCCESS;
 }
-
 
 uint32_t m_ble_flash_config_load(ble_dcs_params_t ** p_config)
 {
@@ -203,8 +192,13 @@ uint32_t m_ble_flash_init(const ble_dcs_params_t    * p_default_config,
     rc = fds_init();
     APP_ERROR_CHECK(rc);
 
-    /* Wait for fds to initialize. */
-    wait_for_fds_ready();
+    // /* Wait for fds to initialize. */
+    // wait_for_fds_ready();
+
+     while (m_fds_initialized == false)
+    {
+        app_sched_execute();
+    }
 
     // NRF_LOG_INFO("Reading flash usage statistics...");
 
