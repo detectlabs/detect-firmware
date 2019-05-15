@@ -77,12 +77,15 @@ SRC_FILES += \
   $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu_bonded.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu_unbonded.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_bas/ble_bas.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twim.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_saadc.c \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_twi.c \
+  $(PROJ_DIR)/source/modules/m_batt_meas.c \
   $(PROJ_DIR)/source/modules/m_ble.c \
   $(PROJ_DIR)/source/modules/m_ble_flash.c \
   $(PROJ_DIR)/source/modules/m_board.c \
@@ -102,6 +105,8 @@ INC_FOLDERS += \
   $(SDK_ROOT)/modules/nrfx/mdk \
   $(SDK_ROOT)/components/libraries/scheduler \
   $(SDK_ROOT)/modules/nrfx \
+  $(SDK_ROOT)/components/ble/ble_services/ble_bas_c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_bas \
   $(SDK_ROOT)/components/libraries/experimental_log \
   $(SDK_ROOT)/components/libraries/pwr_mgmt \
   $(SDK_ROOT)/components/libraries/strerror \

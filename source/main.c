@@ -91,15 +91,19 @@
 #include "twi_manager.h"
 #include "m_detection.h"
 #include "app_scheduler.h"
+#include "m_batt_meas.h"
 
 #define DETECT_SERVICES_MAX             5
 
 #define DETECT_SERVICE_DETECTION        0
+#define DETECT_SERVICE_BATTERY          1
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
-#define SCHED_MAX_EVENT_DATA_SIZE   MAX(APP_TIMER_SCHED_EVENT_DATA_SIZE, BLE_STACK_HANDLER_SCHED_EVT_SIZE) /**< Maximum size of scheduler events. */
-#define SCHED_QUEUE_SIZE            60  /**< Maximum number of events in the scheduler queue. */
+#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVENT_DATA_SIZE, BLE_STACK_HANDLER_SCHED_EVT_SIZE) /**< Maximum size of scheduler events. */
+#define SCHED_QUEUE_SIZE                60  /**< Maximum number of events in the scheduler queue. */
+
+#define BATT_MEAS_INTERVAL_MS           5000 // Measurement interval [ms].
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                            /**< Handle of the current connection. */
 BLE_ADVERTISING_DEF(m_advertising);                                                 /**< Advertising module instance. */
@@ -266,6 +270,51 @@ static void idle_state_handle(void)
     }
 }
 
+/**@brief Battery module data handler.
+ */
+static void m_batt_meas_handler(m_batt_meas_event_t const * p_batt_meas_event)
+{
+    NRF_LOG_INFO("Voltage: %d V, Charge: %d %%, Event type: %d \r\n",
+                p_batt_meas_event->voltage_mv, p_batt_meas_event->level_percent, p_batt_meas_event->type);
+   
+    if (p_batt_meas_event != NULL)
+    {
+        if( p_batt_meas_event->type == M_BATT_MEAS_EVENT_LOW)
+        {
+            uint32_t err_code;
+
+            //err_code = support_func_configure_io_shutdown();
+            //APP_ERROR_CHECK(err_code);
+            
+            // Enable wake on USB detect only.
+            //nrf_gpio_cfg_sense_input(USB_DETECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_SENSE_HIGH);
+
+            NRF_LOG_WARNING("Battery voltage low, shutting down Thingy. Connect USB to charge \r\n");
+            NRF_LOG_FINAL_FLUSH();
+            // Go to system-off mode (This function will not return; wakeup will cause a reset).
+            err_code = sd_power_system_off();
+
+            // #ifdef DEBUG
+            //     if(!support_func_sys_halt_debug_enabled())
+            //     {
+            //         APP_ERROR_CHECK(err_code); // If not in debug mode, return the error and the system will reboot.
+            //     }
+            //     else
+            //     {
+            //         NRF_LOG_WARNING("Exec stopped, busy wait \r\n");
+            //         NRF_LOG_FLUSH();
+            //         while(true) // Only reachable when entering emulated system off.
+            //         {
+            //             // Infinte loop to ensure that code stops in debug mode.
+            //         }
+            //     }
+            // #else
+            //     APP_ERROR_CHECK(err_code);
+            // #endif
+        }
+    }
+}
+
 /**@brief Function for handling BLE events.
  */
 static void detect_ble_evt_handler(m_ble_evt_t * p_evt)
@@ -299,6 +348,7 @@ static void detect_init(void)
     uint32_t err_code;
     m_detection_init_t     det_params;
     m_ble_init_t           ble_params;
+    batt_meas_init_t       batt_meas_init = BATT_MEAS_PARAM_CFG;
 
     /**@brief Initialize the TWI manager. */
     err_code = twi_manager_init(APP_IRQ_PRIORITY_HIGHEST);
@@ -308,6 +358,14 @@ static void detect_init(void)
     det_params.p_twi_instance = &m_twi_master;
     err_code = m_detection_init(&m_ble_service_handles[DETECT_SERVICE_DETECTION],
                                   &det_params);
+    APP_ERROR_CHECK(err_code);
+
+    /**@brief Initialize the battery measurement. */
+    batt_meas_init.evt_handler = m_batt_meas_handler;
+    err_code = m_batt_meas_init(&m_ble_service_handles[DETECT_SERVICE_BATTERY], &batt_meas_init);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = m_batt_meas_enable(BATT_MEAS_INTERVAL_MS);
     APP_ERROR_CHECK(err_code);
 
     /**@brief Initialize BLE handling module. */
