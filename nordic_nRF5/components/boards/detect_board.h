@@ -101,10 +101,9 @@ extern "C" {
 #define BATTERY_AIN                         NRF_SAADC_INPUT_AIN6    /** Pin->AIN mapping func removed in SDK. Hard-coded AIN definition. */
 #define BAT_MON_EN_PIN_USED                 true
 #define BAT_MON_EN_PIN_NO                   12
-#define BATT_MEAS_LOW_BATT_LIMIT_MV         3100                    // Cutoff voltage [mV].
-#define BATT_MEAS_FULL_BATT_LIMIT_MV        4190                    // Full charge definition [mV].
+#define BATT_MEAS_LOW_BATT_LIMIT_MV         2800                    // Cutoff voltage [mV].
+#define BATT_MEAS_FULL_BATT_LIMIT_MV        3200                    // Full charge definition [mV].
 #define BATT_MEAS_VOLTAGE_TO_SOC_ELEMENTS   111                     // Number of elements in the state of charge vector.
-#define BATT_MEAS_LOW_BATT_LIMIT_MV         3100                    // Cutoff voltage [mV].
 #define BATT_MEAS_VOLTAGE_TO_SOC_DELTA_MV   10                      // mV between each element in the SoC vector.
 
 /** Converts voltage to state of charge (SoC) [%]. The first element corresponds to the voltage 

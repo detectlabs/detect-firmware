@@ -73,8 +73,6 @@ typedef struct
     uint16_t            app_timer_prescaler;            ///< App timer prescaler. See APP_TIMER_PRESCALER.
     uint8_t             adc_pin_no;                     ///< Analog in pin connected to battery (with possible voltage divider).
     nrf_saadc_input_t   adc_pin_no_ain;                 ///< Same as above, but given as nrf_saadc_input_t. These two values must correspond.            
-    uint8_t             usb_detect_pin_no;              ///< Pin = high when USB is connected.
-    uint8_t             batt_chg_stat_pin_no;           ///< Pin connected to "Charging status output pin" (CSO) of the battery charger.
     bool                batt_mon_en_pin_used;           ///< Indicates if a pin is used to enable battery monitoring. (E.g. activates a voltage divider).
     uint8_t             batt_mon_en_pin_no;             ///< Pin for enabling battery monitoring.
     uint16_t            batt_voltage_limit_low;         ///< Low voltage limit [milliVolts].
