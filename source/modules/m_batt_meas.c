@@ -6,27 +6,25 @@
 #include "nrf_gpio.h"
 #include "app_scheduler.h"
 #include "nrf_drv_gpiote.h"
+#include "nrf_log.h"
 #include "ble_bas.h"
 #include <stdint.h>
 #include <string.h>
 
-//#define  NRF_LOG_MODULE_NAME "m_batt_meas   "
-#include "nrf_log.h"
-
-#define ADC_GAIN                    NRF_SAADC_GAIN1     // ADC gain.
-#define ADC_REFERENCE_VOLTAGE       (0.6f)              // The standard internal ADC reference voltage.
-#define ADC_RESOLUTION_BITS         (8 + (NRFX_SAADC_CONFIG_RESOLUTION * 2)) //ADC resolution [bits].
-#define ADC_BUF_SIZE                (1)                 // Size of each ADC buffer.
-#define INVALID_BATTERY_LEVEL       (0xFF)              // Invalid/default battery level.
-
-static ble_bas_t                    m_bas;                          // Structure to identify the battery service.
-static m_batt_meas_event_handler_t  m_evt_handler;                  // Event handler function pointer.
-static batt_meas_param_t            m_batt_meas_param;              // Battery parameters.
-static float                        m_battery_divider_factor;       //
-static nrf_saadc_value_t            m_buffer[ADC_BUF_SIZE];         //
-static volatile bool                m_adc_cal_in_progress;          //
-static bool                         m_ble_bas_configured = false;   // Has the BLE battery service been initalized?
-static uint8_t                      m_initial_batt_level_percent = INVALID_BATTERY_LEVEL;  // Initial battery level in percent.
+#define ADC_GAIN                    NRF_SAADC_GAIN1                                         // ADC gain.
+#define ADC_REFERENCE_VOLTAGE       (0.6f)                                                  // The standard internal ADC reference voltage.
+#define ADC_RESOLUTION_BITS         (8 + (NRFX_SAADC_CONFIG_RESOLUTION * 2))                // ADC resolution [bits].
+#define ADC_BUF_SIZE                (1)                                                     // Size of each ADC buffer.
+#define INVALID_BATTERY_LEVEL       (0xFF)                                                  // Invalid/default battery level.
+            
+static ble_bas_t                    m_bas;                                                  // Structure to identify the battery service.
+static m_batt_meas_event_handler_t  m_evt_handler;                                          // Event handler function pointer.
+static batt_meas_param_t            m_batt_meas_param;                                      // Battery parameters.
+static float                        m_battery_divider_factor;                               //
+static nrf_saadc_value_t            m_buffer[ADC_BUF_SIZE];                                 //
+static volatile bool                m_adc_cal_in_progress;                                  //
+static bool                         m_ble_bas_configured = false;                           // Has the BLE battery service been initalized?
+static uint8_t                      m_initial_batt_level_percent = INVALID_BATTERY_LEVEL;   // Initial battery level in percent.
 
 /** @brief Timer for periodic battery measurement.
  */
@@ -100,7 +98,7 @@ static uint32_t adc_to_batt_voltage(uint32_t adc_val, uint16_t * const voltage)
     return M_BATT_STATUS_CODE_SUCCESS;
 }
 
-/**@brief Function for passing the BLE event to the Thingy Battery module.
+/**@brief Function for passing the BLE event to the Detect Battery module.
  *
  * @details This callback function will be called from the BLE handling module.
  *
@@ -182,19 +180,6 @@ static uint32_t gpiote_init(void)
         err_code = nrf_drv_gpiote_init();
         RETURN_IF_ERROR(err_code);
     }
-
-    // nrf_drv_gpiote_in_config_t gpiote_in_config;
-    //     gpiote_in_config.is_watcher  = false;
-    //     gpiote_in_config.hi_accuracy = false;
-    //     gpiote_in_config.pull        = NRF_GPIO_PIN_NOPULL;
-    //     gpiote_in_config.sense       = NRF_GPIOTE_POLARITY_TOGGLE;
-
-    //err_code = nrf_drv_gpiote_in_init(m_batt_meas_param.usb_detect_pin_no,
-    //                                  &gpiote_in_config, gpiote_evt_handler);
-    //APP_ERROR_CHECK(err_code);
-
-    //nrf_drv_gpiote_in_event_enable(m_batt_meas_param.usb_detect_pin_no, true);
-    //nrf_drv_gpiote_in_event_enable(m_batt_meas_param.batt_chg_stat_pin_no, true);
 
     return NRF_SUCCESS;
 }
@@ -337,7 +322,7 @@ static void app_timer_periodic_handler(void * unused)
     APP_ERROR_CHECK(err_code);
 }
 
-/**@brief Function for initializing the Thingy Battery Service.
+/**@brief Function for initializing the Detect Battery Service.
  *
  * @details This callback function will be called from the ble handling module to initialize the Battery service.
  *
@@ -382,7 +367,7 @@ uint32_t m_batt_meas_enable(uint32_t meas_interval_ms)
 
     if (m_batt_meas_param.batt_mon_en_pin_used)
     {
-        nrf_drv_gpiote_out_set(m_batt_meas_param.batt_mon_en_pin_no);     // Enable battery monitoring.)
+        nrf_drv_gpiote_out_set(m_batt_meas_param.batt_mon_en_pin_no);     // Enable battery monitoring.
     }
 
     // Call for a battery voltage sample immediately after enabling battery measurements.

@@ -101,8 +101,8 @@ extern "C" {
 #define BATTERY_AIN                         NRF_SAADC_INPUT_AIN6    /** Pin->AIN mapping func removed in SDK. Hard-coded AIN definition. */
 #define BAT_MON_EN_PIN_USED                 true
 #define BAT_MON_EN_PIN_NO                   12
-#define BATT_MEAS_LOW_BATT_LIMIT_MV         2800                    // Cutoff voltage [mV].
-#define BATT_MEAS_FULL_BATT_LIMIT_MV        3200                    // Full charge definition [mV].
+#define BATT_MEAS_LOW_BATT_LIMIT_MV         2700                    // Cutoff voltage [mV].
+#define BATT_MEAS_FULL_BATT_LIMIT_MV        3600                    // Full charge definition [mV].
 #define BATT_MEAS_VOLTAGE_TO_SOC_ELEMENTS   111                     // Number of elements in the state of charge vector.
 #define BATT_MEAS_VOLTAGE_TO_SOC_DELTA_MV   10                      // mV between each element in the SoC vector.
 
@@ -110,13 +110,15 @@ extern "C" {
 BATT_MEAS_LOW_BATT_LIMIT_MV and each element is BATT_MEAS_VOLTAGE_TO_SOC_DELTA_MV higher than the previous.
 Numbers are obtained via model fed with experimental data. */
 static const uint8_t BATT_MEAS_VOLTAGE_TO_SOC[] = { 
- 0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,
- 2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,
- 4,  5,  5,  5,  6,  6,  7,  7,  8,  8,  9,  9, 10, 11, 12, 13, 13, 14, 15, 16,
-18, 19, 22, 25, 28, 32, 36, 40, 44, 47, 51, 53, 56, 58, 60, 62, 64, 66, 67, 69,
-71, 72, 74, 76, 77, 79, 81, 82, 84, 85, 85, 86, 86, 86, 87, 88, 88, 89, 90, 91,
-91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 100};
-
+ 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 7, 7, 7, 7, 7, 7, 7, 7, 7,
+ 13, 13, 13, 13, 13, 13, 13, 13, 13,
+ 28, 28, 28, 28, 28, 28, 28, 28, 28,
+ 42, 42, 42, 42, 42, 42, 42, 42, 42,
+ 48, 48, 48, 48, 48, 48, 48, 48, 48,
+ 56, 56, 56, 56, 56, 56, 56, 56, 56,
+ 71, 71, 71, 71, 71, 71, 71, 71, 71,
+ 100, 100, 100, 100, 100, 100, 100, 100, 100,};
 
 // Battery monitoring setup.
 #define BATT_MEAS_PARAM_CFG                                             \
