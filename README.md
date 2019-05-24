@@ -59,7 +59,7 @@ Detection Service
 | Detection service               | 0200                                 |                      |                  |                              | 
 | Presence characteristic         | 0201                                 | Notify               | 8 bytes          | IR Sensors (unit pA):  <ul><li>int16_t - IR1</li><li>int16_t - IR2</li><li>int16_t - IR3</li><li>int16_t - IR4</li></ul>  |
 | Range characteristic            | 0202                                 | Notify               | 2 bytes          | Ranger (unit mm):  <ul><li>uint16_t - mm</li></ul>  |
-| Configuration characteristic    | 0203                                 | Write/Read           | 13 bytes         | <ul><li>uint16_t - Presence Interval in ms (30 ms - 60s).</li></ul><ul><li>uint16_t - Range Interval in ms (30 ms - 60s).</li></ul><ul><li> Presence Threshold Level</li><ul><li>int16_t - ETH13H [-2048 - 2047]</li><li>int16_t - ETH13L [-2048 - 2047]</li><li>int16_t - ETH24H [-2048 - 2047]</li><li>int16_t - ETH24L [-2048 - 2047]</li></ul></ul><ul><li>uint8_t - Sample Mode</li><ul><li>1 = Continuous</li></ul><ul><li>2 = Motion Activated</li></ul></ul>  |
+| Configuration characteristic    | 0203                                 | Write/Read           | 13 bytes         | <ul><li>uint16_t - Presence Interval in ms (30 ms - 60s).</li></ul><ul><li>uint16_t - Range Interval in ms (30 ms - 60s).</li></ul><ul><li> Presence Threshold Level</li><ul><li>int16_t - ETH13H [-2048 - 2047]</li><li>int16_t - ETH13L [-2048 - 2047]</li><li>int16_t - ETH24H [-2048 - 2047]</li><li>int16_t - ETH24L [-2048 - 2047]</li></ul></ul><ul><li>uint8_t - Sample Mode</li><ul><li>1 = Continuous - The presence and range sensor are not tied together, and streaming (notifying) will begin when characteristic notification is enabled.</li></ul><ul><li>2 = Motion Activated - When the threshold is passed on the presence sensor, both the presence and range sensor will begin streaming (notifying) at their set intervals if notify is enabled.</li></ul></ul>  |
 
 Environment Service
 ------
@@ -77,7 +77,7 @@ Battery Service
 ------
 | Name                            | UUID                                 | Type                 | Data             | Description                  | 
 | -------                         | ----------------------               | -------------------- | -------          | ------------                 | 
-| UUID                            | 180F                                 |  Notify/Read         | 1 byte           |                              | 
+| UUID                            | 180F                                 |  Notify/Read         | 1 byte           | <ul><li> uint8_t State of charge [%] (0-100) </li></ul> Uses a lookup table to convert from battery voltage to state of charge (SoC). Due to the ADC configuration and battery model, certain percentage values are skipped. Will only update/notify if there is a change in remaining battery level. | 
 
 Secure DFU Service
 ------
