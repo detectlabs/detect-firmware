@@ -2,6 +2,7 @@
 #include "m_board.h"
 #include "m_ble_flash.h"
 #include "ble_dcs.h"
+#include "ble_dds.h"
 
 #define APP_BLE_OBSERVER_PRIO           3                                           /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 #define APP_BLE_CONN_CFG_TAG            1                                           /**< A tag identifying the SoftDevice BLE configuration. */
@@ -43,7 +44,10 @@ static ble_advertising_t * p_m_advertising;
 static uint16_t * p_m_conn_handle;
 
 // YOUR_JOB: Use UUIDs for service(s) used in your application.
-static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}};
+static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE,  BLE_UUID_TYPE_BLE},
+                                    {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
+                                    {BLE_UUID_DCS_SERVICE,                BLE_UUID_TYPE_BLE},
+                                    {BLE_UUID_DDS_SERVICE,                BLE_UUID_TYPE_BLE}};
 
 /**@brief Function for handling the YYY Service events.
  * YOUR_JOB implement a service handler function depending on the event the service you are using can generate
