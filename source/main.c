@@ -283,16 +283,11 @@ static void m_batt_meas_handler(m_batt_meas_event_t const * p_batt_meas_event)
         {
             uint32_t err_code;
 
-            //err_code = support_func_configure_io_shutdown();
-            //APP_ERROR_CHECK(err_code);
-            
-            // Enable wake on USB detect only.
-            //nrf_gpio_cfg_sense_input(USB_DETECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_SENSE_HIGH);
-
             NRF_LOG_WARNING("Battery voltage low, shutting down Thingy. Connect USB to charge \r\n");
             NRF_LOG_FINAL_FLUSH();
             // Go to system-off mode (This function will not return; wakeup will cause a reset).
-            err_code = sd_power_system_off();
+            // Not powering off for now since we're using single use batteries
+            //err_code = sd_power_system_off();
 
             // #ifdef DEBUG
             //     if(!support_func_sys_halt_debug_enabled())
