@@ -281,7 +281,7 @@ static void m_batt_meas_handler(m_batt_meas_event_t const * p_batt_meas_event)
     {
         if( p_batt_meas_event->type == M_BATT_MEAS_EVENT_LOW)
         {
-            uint32_t err_code;
+            //uint32_t err_code;
 
             NRF_LOG_WARNING("Battery voltage low, shutting down Thingy. Connect USB to charge \r\n");
             NRF_LOG_FINAL_FLUSH();

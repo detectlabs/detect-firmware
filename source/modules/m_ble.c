@@ -495,6 +495,58 @@ static void dcs_evt_handler (ble_dcs_t        * p_dcs,
     }
 }
 
+/**@brief Checks the current version of the FW against the previous version stored in flash.
+ * If a major or minor FW change is detected, modules must reinitialize their flash storage.
+ *
+ * @note: If the FW version is changed while erasing all flash, a FW change cannot be detected.
+ */
+static uint32_t detect_config_verify(void)
+{
+    bool update_flash = false;
+    uint32_t err_code;
+    
+    bool fw_version_major_changed = ( m_ble_config->fw_version.major != m_ble_default_config.fw_version.major );
+    bool fw_version_minor_changed = ( m_ble_config->fw_version.minor != m_ble_default_config.fw_version.minor );
+    bool fw_version_patch_changed = ( m_ble_config->fw_version.patch != m_ble_default_config.fw_version.patch );
+    
+    ble_dcs_fw_version_t prev_fw_version = m_ble_config->fw_version;
+
+    if ( fw_version_major_changed || fw_version_minor_changed || fw_version_patch_changed)
+    {
+        m_ble_config->fw_version.major = m_ble_default_config.fw_version.major;
+        m_ble_config->fw_version.minor = m_ble_default_config.fw_version.minor;
+        m_ble_config->fw_version.patch = m_ble_default_config.fw_version.patch;
+        
+        update_flash = true;
+        
+        if(fw_version_major_changed || fw_version_minor_changed)
+        {       
+            update_flash = false;
+            m_major_minor_fw_ver_changed = true;
+            
+            err_code = m_ble_flash_config_store(&m_ble_default_config);
+            APP_ERROR_CHECK(err_code);
+        }
+    }
+    
+    NRF_LOG_INFO("m_ble: Current FW: v%d.%d.%d \r\n",
+    m_ble_default_config.fw_version.major, m_ble_default_config.fw_version.minor, m_ble_default_config.fw_version.patch);
+    
+    if(m_major_minor_fw_ver_changed)
+    {
+        NRF_LOG_INFO("m_ble: Major or minor FW version changed. Prev. FW (from flash): v%d.%d.%d \r\n",
+        prev_fw_version.major, prev_fw_version.minor, prev_fw_version.patch);
+    }
+
+    if (update_flash)
+    {
+        err_code = m_ble_flash_config_store(m_ble_config);
+        APP_ERROR_CHECK(err_code);
+    }
+    
+    return NRF_SUCCESS;
+}
+
 
 /**@brief Function for initializing services that will be used by the application.
  */
@@ -740,7 +792,20 @@ uint32_t m_ble_init(m_ble_init_t * p_params, uint16_t * _m_conn_handle, ble_adve
 
     /**@brief Load configuration from flash. */
     err_code = m_ble_flash_init(&m_ble_default_config, &m_ble_config);
-    APP_ERROR_CHECK(err_code);
+
+     if (err_code != NRF_SUCCESS)
+    {
+        NRF_LOG_ERROR(" m_ble_flash_init failed - %d\r\n", err_code);
+        return err_code;
+    }
+
+    err_code = detect_config_verify();
+
+    if (err_code != NRF_SUCCESS)
+    {
+        NRF_LOG_ERROR("Detect_config_verify failed - %d\r\n", err_code);
+        return err_code;
+    }
 
     peer_manager_init();
 

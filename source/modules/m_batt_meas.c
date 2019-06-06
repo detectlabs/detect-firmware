@@ -17,7 +17,7 @@
 #define ADC_BUF_SIZE                (1)                                                     // Size of each ADC buffer.
 #define INVALID_BATTERY_LEVEL       (0xFF)                                                  // Invalid/default battery level.
             
-static ble_bas_t                    m_bas;                                                  // Structure to identify the battery service.
+static ble_bas_t              m_bas;                                                  // Structure to identify the battery service.
 static m_batt_meas_event_handler_t  m_evt_handler;                                          // Event handler function pointer.
 static batt_meas_param_t            m_batt_meas_param;                                      // Battery parameters.
 static float                        m_battery_divider_factor;                               //
@@ -178,7 +178,7 @@ static uint32_t gpiote_init(void)
     if (!nrf_drv_gpiote_is_init())
     {
         err_code = nrf_drv_gpiote_init();
-        RETURN_IF_ERROR(err_code);
+        APP_ERROR_CHECK(err_code);
     }
 
     return NRF_SUCCESS;
@@ -432,8 +432,8 @@ uint32_t m_batt_meas_init(m_ble_service_handle_t * p_handle, batt_meas_init_t co
 
     nrf_gpio_cfg_input(m_batt_meas_param.adc_pin_no, NRF_GPIO_PIN_NOPULL);
 
-    //err_code = gpiote_init();
-    //APP_ERROR_CHECK(err_code);
+    err_code = gpiote_init();
+    APP_ERROR_CHECK(err_code);
 
     err_code = saadc_calibrate();
     APP_ERROR_CHECK(err_code);
