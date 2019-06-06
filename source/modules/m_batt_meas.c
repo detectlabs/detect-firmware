@@ -77,7 +77,7 @@ static void batt_voltage_to_percent(uint16_t voltage_mv, uint8_t * const battery
     
     *battery_level_percent = m_batt_meas_param.state_of_charge.voltage_to_soc[soc_vector_element];
     
-    NRF_LOG_INFO("soc_vector_element %d, voltage %d, SoC %d \r\n", soc_vector_element, voltage_mv, *battery_level_percent);
+    //NRF_LOG_INFO("soc_vector_element %d, voltage %d, SoC %d \r\n", soc_vector_element, voltage_mv, *battery_level_percent);
 }
 
 /** @brief Converts an ADC reading to battery voltage. Returned as an integer in millivolts.
