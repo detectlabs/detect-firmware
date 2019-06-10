@@ -188,6 +188,9 @@ uint32_t drv_presence_enable(ble_dds_config_t * config)
     err_code = drv_ak9750_open(&m_drv_presence.cfg);
     APP_ERROR_CHECK(err_code);
 
+    err_code = drv_ak9750_init();
+    RETURN_IF_ERROR(err_code);
+
     err_code = drv_ak9750_cfg_set(config);
     RETURN_IF_ERROR(err_code);
 

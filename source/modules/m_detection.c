@@ -219,7 +219,7 @@ static uint32_t config_verify(ble_dds_config_t * p_config)
     {
         err_code = m_det_flash_config_store((ble_dds_config_t *)&m_default_config);
         APP_ERROR_CHECK(err_code);
-    }
+    }   
 
     return NRF_SUCCESS;
 }
@@ -323,7 +323,7 @@ static void ble_dds_evt_handler( ble_dds_t        * p_dds,
             break;
         case BLE_DDS_EVT_CONFIG_RECEIVED:
         {
-            //NRF_LOG_DEBUG("dds_evt_handler: BLE_DDS_EVT_CONFIG_RECEIVED: %d\r\n", length);
+            //NRF_LOG_RAW_INFO("dds_evt_handler: BLE_DDS_EVT_CONFIG_RECEIVED: %d\r\n", length);
             APP_ERROR_CHECK_BOOL(length == sizeof(ble_dds_config_t));
 
             err_code = m_det_flash_config_store((ble_dds_config_t *)p_data);

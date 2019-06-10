@@ -117,7 +117,9 @@ static void on_authorize_req(ble_dds_t * p_dds, ble_evt_t const * p_ble_evt)
                     (p_config->threshold_config.eth13h < BLE_DDS_CONFIG_THRESHOLD_MIN)            ||
                     (p_config->threshold_config.eth13l > BLE_DDS_CONFIG_THRESHOLD_MAX)            ||
                     (p_config->threshold_config.eth24h < BLE_DDS_CONFIG_THRESHOLD_MIN)            ||
-                    ((int)p_config->threshold_config.eth24l > (int)BLE_DDS_CONFIG_THRESHOLD_MAX))
+                    ((int)p_config->threshold_config.eth24l > (int)BLE_DDS_CONFIG_THRESHOLD_MAX)  ||
+                    (p_config->sample_mode < 0)                                                   ||
+                    (p_config->sample_mode > 1))
                 {
                     valid_data = false;
                 }
