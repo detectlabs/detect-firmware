@@ -62,6 +62,7 @@ static void drv_presence_evt_handler(drv_presence_evt_t const * p_event)
  */
 static void drv_range_evt_handler(drv_range_evt_t const * p_event)
 {
+    uint32_t err_code;
     //NRF_LOG_INFO("******************RANGE *******************************HERE \r\n");
     switch (p_event->type)
     {
@@ -72,6 +73,10 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
 
                 drv_range_get(&range);
                 (void)ble_dds_range_set(&m_dds, &range);
+                
+                NRF_LOG_INFO("***RANGE SAMPLE HANDLER*** \r\n");
+                err_code = drv_range_sample();
+                APP_ERROR_CHECK(err_code);
             }
         }
         break;
@@ -100,6 +105,7 @@ static void presence_timeout_handler(void * p_context)
         drv_presence_get(&presence);
         (void)ble_dds_presence_set(&m_dds, &presence);
 
+        NRF_LOG_INFO("***RANGE SAMPLE TIMEOUT*** \r\n");
         err_code = drv_range_sample();
         APP_ERROR_CHECK(err_code);
     }
@@ -426,6 +432,7 @@ static uint32_t range_sensor_init(const nrf_drv_twi_t * p_twi_instance)
     init_params.p_twi_instance          = p_twi_instance;
     init_params.p_twi_cfg               = &twi_config;
     init_params.evt_handler             = drv_range_evt_handler;
+    init_params.sampling_interval       = m_p_config->range_interval_ms;
 
     return drv_range_init(&init_params);
 }
