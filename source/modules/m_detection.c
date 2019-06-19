@@ -73,10 +73,8 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
 
                 drv_range_get(&range);
                 (void)ble_dds_range_set(&m_dds, &range);
-                
-                NRF_LOG_INFO("***RANGE SAMPLE HANDLER*** \r\n");
-                err_code = drv_range_sample();
-                APP_ERROR_CHECK(err_code);
+
+                range_read = true;
             }
         }
         break;
@@ -105,9 +103,11 @@ static void presence_timeout_handler(void * p_context)
         drv_presence_get(&presence);
         (void)ble_dds_presence_set(&m_dds, &presence);
 
-        NRF_LOG_INFO("***RANGE SAMPLE TIMEOUT*** \r\n");
-        err_code = drv_range_sample();
-        APP_ERROR_CHECK(err_code);
+        // Start range timer that will repeatedly attempt to 
+        // start another ranging when the last finishes
+        app_timer_start(range_timer_id,
+                            APP_TIMER_TICKS(1),
+                            NULL);  
     }
     else
     {
@@ -124,8 +124,24 @@ static void range_timeout_handler(void * p_context)
 {
     uint32_t err_code;
 
-    err_code = drv_range_sample();
-    APP_ERROR_CHECK(err_code);
+    // err_code = drv_range_sample();
+    // APP_ERROR_CHECK(err_code);
+
+    // If ranger has completed a ranging and we have gotten the data,
+    // initiate another sampling
+    if (range_read)
+    {
+        NRF_LOG_INFO("***RANGE SAMPLE TIMEOUT*** \r\n");
+        err_code = drv_range_sample();
+        APP_ERROR_CHECK(err_code); 
+        range_read = false;
+
+        if(m_p_config->sample_mode == SAMPLE_MODE_MOTION)
+        {
+            err_code = app_timer_stop(range_timer_id);
+            APP_ERROR_CHECK(err_code);
+        }
+    }
 }
 
 /**@brief Function for stopping pressure sampling.
@@ -146,8 +162,10 @@ static uint32_t range_stop(void)
 {
     uint32_t err_code;
 
+    NRF_LOG_INFO("***RANGE TIMER STOP BEFORE*** \r\n");
     err_code = app_timer_stop(range_timer_id);
     APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("***RANGE TIMER STOP AFTER*** \r\n");
 
     return drv_range_disable();
 }
@@ -197,13 +215,22 @@ static uint32_t range_start(void)
 
     if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)
     {
+        range_read = true;
+
         err_code = drv_range_sample();
         APP_ERROR_CHECK(err_code);
 
         app_timer_start(range_timer_id,
-                            APP_TIMER_TICKS(m_p_config->range_interval_ms),
+                            APP_TIMER_TICKS(1),
                             NULL);  
-    } 
+    }
+    else if(m_p_config->sample_mode == SAMPLE_MODE_MOTION)
+    {
+        // err_code = drv_range_sample();
+        // APP_ERROR_CHECK(err_code);
+        range_read = true;
+    }
+    
 
     //NRF_LOG_RAW_INFO("\r########## range_intervale_ms: %d  \n", m_default_config.range_interval_ms);  
 
