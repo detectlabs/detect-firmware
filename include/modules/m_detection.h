@@ -17,8 +17,8 @@ typedef struct
 
 /* presence_interval_ms      In Continuous sample mode, the sample should be iniated right after the last data is read, otherwise you incur the time to measure plus the interval time 8 */
 #define     DETECTION_CONFIG_DEFAULT {                 \
-    .presence_interval_ms = 100,                       \
-    .range_interval_ms    = 100,                       \
+    .presence_interval_ms = 33,                        \
+    .range_interval_ms    = 33,                        \
     .threshold_config     =                            \
     {                                                  \
         .eth13h            =  200,                     \
