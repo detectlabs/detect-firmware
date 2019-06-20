@@ -43,6 +43,7 @@ typedef struct
     nrf_drv_twi_config_t const *      p_twi_cfg;    ///< The TWI configuration to use while the driver is enabled.
     drv_range_evt_handler_t         evt_handler;    ///< Event handler - called after a pin interrupt has been detected.
     drv_range_mode_t                       mode;    ///< Current mode of operation.
+    uint8_t                    sampling_interval;   ///< The Sampling Interval to Initialize with
 }drv_range_init_t;
 
 /**@brief Function for initializing the range driver.

@@ -14,6 +14,7 @@ typedef struct
     drv_range_evt_handler_t  evt_handler;   ///< Event handler called by gpiote_evt_sceduled.
     drv_range_mode_t                mode;   ///< Mode of operation.
     bool                         enabled;   ///< Driver enabled.
+    uint8_t            sampling_interval;   ///< The Sampling Interval to Initialize with
 } drv_range_t;
 
 /**@brief Stored configuration.
@@ -75,13 +76,14 @@ uint32_t drv_range_init(drv_range_init_t * p_params)
     VERIFY_PARAM_NOT_NULL(p_params->p_twi_cfg);
     VERIFY_PARAM_NOT_NULL(p_params->evt_handler);
 
-    m_drv_range.mode               = p_params->mode;
-    m_drv_range.evt_handler        = p_params->evt_handler;
+    m_drv_range.mode                    = p_params->mode;
+    m_drv_range.evt_handler             = p_params->evt_handler;
 
-    m_drv_range.cfg.twi_addr       = p_params->twi_addr;
-    m_drv_range.cfg.pin_int        = p_params->pin_int;
-    m_drv_range.cfg.p_twi_instance = p_params->p_twi_instance;
-    m_drv_range.cfg.p_twi_cfg      = p_params->p_twi_cfg;
+    m_drv_range.cfg.twi_addr            = p_params->twi_addr;
+    m_drv_range.cfg.pin_int             = p_params->pin_int;
+    m_drv_range.cfg.p_twi_instance      = p_params->p_twi_instance;
+    m_drv_range.cfg.p_twi_cfg           = p_params->p_twi_cfg;
+    m_drv_range.sampling_interval       = p_params->sampling_interval;
 
     m_drv_range.enabled            = false;
 
@@ -91,7 +93,7 @@ uint32_t drv_range_init(drv_range_init_t * p_params)
     err_code = drv_vl53l0x_verify(&who_am_i);
     RETURN_IF_ERROR(err_code);
 
-    err_code = drv_vl53l0x_init();
+    err_code = drv_vl53l0x_init(&m_drv_range.sampling_interval);
     RETURN_IF_ERROR(err_code);
 
     err_code = drv_vl53l0x_close();
@@ -116,7 +118,7 @@ uint32_t drv_range_enable(void)
     err_code = drv_vl53l0x_open(&m_drv_range.cfg);
     RETURN_IF_ERROR(err_code);
 
-    err_code = drv_vl53l0x_init();
+    err_code = drv_vl53l0x_init(&m_drv_range.sampling_interval);
     RETURN_IF_ERROR(err_code);
 
     err_code = drv_vl53l0x_close();

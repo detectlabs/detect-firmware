@@ -25,6 +25,7 @@
 #define DRI_ENABLE_ALL_THRESHOLD       0xFF
 #define DRI_ENABLE_ONLY                0xC1
 #define DRI_DISABLE_ALL_THRESHOLD      0xFE
+#define DRI_DISABLE_NO_THRESHOLD       0xC0
 #define SRST                           0xFF
 
 #define ETH13H_L                        0x11
@@ -374,11 +375,12 @@ uint32_t drv_ak9750_cfg_set(ble_dds_config_t * config)
         //NRF_LOG_INFO("!!!!!! DRV_RANGE_MODE_CONTINUOUS ENABLED !!!!! \r\n");
 
         // Set Mode Reg
-        err_code = reg_write(ECNTL1, NORMAL_FC_8_8_SINGLE_SHOT_MODE);
+        err_code = reg_write(ECNTL1, NORMAL_FC_8_8_CONTINUOUS);
         RETURN_IF_ERROR(err_code);
 
         // Enable Interrupt for DRI
-        err_code = reg_write(EINTEN, DRI_ENABLE_ONLY);
+        //err_code = reg_write(EINTEN, DRI_DISABLE_ALL_THRESHOLD);
+        err_code = reg_write(EINTEN, DRI_DISABLE_NO_THRESHOLD);
         RETURN_IF_ERROR(err_code);
     }
     else
@@ -498,12 +500,15 @@ uint32_t drv_ak9750_get_irs(ble_dds_presence_t * presence)
 
         err_code = reg_read(ST1, &st1);
         RETURN_IF_ERROR(err_code);
+
         iTimeout++;
+       // NRF_LOG_RAW_INFO("\n*** AK Get Delaying 1ms ***\n");
         nrf_delay_ms(1);
-        if (iTimeout > 100) 
+
+        if (iTimeout > 2) 
         {
-            NRF_LOG_RAW_INFO("\nAK Timeout\n");
-            return NRF_ERROR_TIMEOUT; 
+            NRF_LOG_RAW_INFO("\n*** AK9750 Timeout ***\n");
+            break;
         }
 
     }while(!(st1 & (1<<0)));

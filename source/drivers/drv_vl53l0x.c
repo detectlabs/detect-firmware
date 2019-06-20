@@ -1400,7 +1400,7 @@ uint32_t drv_vl53l0x_reset(void)
     return NRF_SUCCESS;
 }
 
-uint32_t drv_vl53l0x_init()
+uint32_t drv_vl53l0x_init(uint8_t * sampling_rate)
 {
     DRV_CFG_CHECK(m_vl53l0x.p_cfg);
 
@@ -1411,7 +1411,7 @@ uint32_t drv_vl53l0x_init()
     setVcselPulsePeriod(VcselPeriodPreRange, 18);
     setVcselPulsePeriod(VcselPeriodFinalRange, 14);
 
-    setMeasurementTimingBudget(20000);
+    setMeasurementTimingBudget((*sampling_rate) * 1000);
 
     nrf_delay_ms(200);
 
