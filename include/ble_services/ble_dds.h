@@ -54,10 +54,10 @@ typedef PACKED( struct
     ble_dds_sample_mode_t            sample_mode;
 }) ble_dds_config_t;
 
-#define BLE_DDS_CONFIG_PRESENCE_INT_MIN       50
-#define BLE_DDS_CONFIG_PRESENCE_INT_MAX    60000
-#define BLE_DDS_CONFIG_RANGE_INT_MIN          50
-#define BLE_DDS_CONFIG_RANGE_INT_MAX       60000
+#define BLE_DDS_CONFIG_PRESENCE_INT_MIN       20
+#define BLE_DDS_CONFIG_PRESENCE_INT_MAX      200
+#define BLE_DDS_CONFIG_RANGE_INT_MIN          20
+#define BLE_DDS_CONFIG_RANGE_INT_MAX         200
 #define BLE_DDS_CONFIG_THRESHOLD_MIN       -2048
 #define BLE_DDS_CONFIG_THRESHOLD_MAX        2047
 

@@ -24,15 +24,7 @@ static void drv_presence_evt_handler(drv_presence_evt_t const * p_event)
     {
         case DRV_PRESENCE_EVT_DATA:
         {
-            if (p_event->mode == SAMPLE_MODE_CONTINUOUS)
-            {
-                ble_dds_presence_t presence;
-
-                drv_presence_get(&presence);
-                (void)ble_dds_presence_set(&m_dds, &presence);
-
-            }
-            else if(p_event->mode == SAMPLE_MODE_MOTION)
+            if(p_event->mode == SAMPLE_MODE_MOTION)
             {
                 //Start Timer to drive ak sampling when motion is detect_ble_evt_disconnected
                 app_timer_start(presence_timer_id,
@@ -107,12 +99,15 @@ static void presence_timeout_handler(void * p_context)
         // start another ranging when the last finishes
         app_timer_start(range_timer_id,
                             APP_TIMER_TICKS(1),
-                            NULL);  
+                            NULL);
+
     }
-    else
+    else if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)
     {
-        err_code = drv_presence_sample();
-        APP_ERROR_CHECK(err_code);
+        ble_dds_presence_t presence;
+
+        drv_presence_get(&presence);
+        (void)ble_dds_presence_set(&m_dds, &presence);
     }
 }
 
@@ -124,14 +119,10 @@ static void range_timeout_handler(void * p_context)
 {
     uint32_t err_code;
 
-    // err_code = drv_range_sample();
-    // APP_ERROR_CHECK(err_code);
-
     // If ranger has completed a ranging and we have gotten the data,
     // initiate another sampling
     if (range_read)
     {
-        NRF_LOG_INFO("***RANGE SAMPLE TIMEOUT*** \r\n");
         err_code = drv_range_sample();
         APP_ERROR_CHECK(err_code); 
         range_read = false;
@@ -162,10 +153,8 @@ static uint32_t range_stop(void)
 {
     uint32_t err_code;
 
-    NRF_LOG_INFO("***RANGE TIMER STOP BEFORE*** \r\n");
     err_code = app_timer_stop(range_timer_id);
     APP_ERROR_CHECK(err_code);
-    NRF_LOG_INFO("***RANGE TIMER STOP AFTER*** \r\n");
 
     return drv_range_disable();
 }
@@ -191,9 +180,6 @@ static uint32_t presence_start(void)
 
     if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)
     {     
-        err_code = drv_presence_sample();
-        APP_ERROR_CHECK(err_code);
-
         return app_timer_start(presence_timer_id,
                         APP_TIMER_TICKS(m_p_config->presence_interval_ms),
                         NULL);    
@@ -226,8 +212,6 @@ static uint32_t range_start(void)
     }
     else if(m_p_config->sample_mode == SAMPLE_MODE_MOTION)
     {
-        // err_code = drv_range_sample();
-        // APP_ERROR_CHECK(err_code);
         range_read = true;
     }
     
@@ -328,7 +312,7 @@ static void ble_dds_evt_handler( ble_dds_t        * p_dds,
     switch (evt_type)
     {
         case BLE_DDS_EVT_NOTIF_PRESENCE:
-            //NRF_LOG_INFO("tes_evt_handler: BLE_TES_EVT_NOTIF_PRESENCE: %d\r\n", p_dds->is_presence_notif_enabled);
+            NRF_LOG_INFO("tes_evt_handler: BLE_TES_EVT_NOTIF_PRESENCE: %d\r\n", p_dds->is_presence_notif_enabled);
             if (p_dds->is_presence_notif_enabled)
             {
                 err_code = presence_start();
@@ -342,7 +326,7 @@ static void ble_dds_evt_handler( ble_dds_t        * p_dds,
             break;
 
         case BLE_DDS_EVT_NOTIF_RANGE:
-            //NRF_LOG_INFO("tes_evt_handler: BLE_TES_EVT_NOTIF_RANGE: %d\r\n", p_dds->is_range_notif_enabled);
+            NRF_LOG_INFO("tes_evt_handler: BLE_TES_EVT_NOTIF_RANGE: %d\r\n", p_dds->is_range_notif_enabled);
             if (p_dds->is_range_notif_enabled)
             {
                 err_code = range_start();
@@ -356,7 +340,7 @@ static void ble_dds_evt_handler( ble_dds_t        * p_dds,
             break;
         case BLE_DDS_EVT_CONFIG_RECEIVED:
         {
-            //NRF_LOG_RAW_INFO("dds_evt_handler: BLE_DDS_EVT_CONFIG_RECEIVED: %d\r\n", length);
+            NRF_LOG_RAW_INFO("dds_evt_handler: BLE_DDS_EVT_CONFIG_RECEIVED: %d\r\n", length);
             APP_ERROR_CHECK_BOOL(length == sizeof(ble_dds_config_t));
 
             err_code = m_det_flash_config_store((ble_dds_config_t *)p_data);

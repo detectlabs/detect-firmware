@@ -55,7 +55,7 @@ static void gpiote_evt_sceduled(void * p_event_data, uint16_t event_size)
 
     if(m_drv_presence.mode == SAMPLE_MODE_MOTION )
     {
-        //NRF_LOG_INFO("***********************   SAMPLE_MODE_MOTION ********************");
+        NRF_LOG_INFO("*********************** MOTION DETECTED ********************");
         if(int_status & IR13H_MASK || int_status & IR13L_MASK || int_status & IR24H_MASK || int_status & IR24L_MASK)
         {
             if(!ak9750_output_active)
