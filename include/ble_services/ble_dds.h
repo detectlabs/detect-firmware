@@ -21,6 +21,7 @@
 
 typedef PACKED( struct
 {
+    uint32_t timestamp;
     int16_t ir1;
     int16_t ir2;
     int16_t ir3;
@@ -29,7 +30,8 @@ typedef PACKED( struct
 
 typedef PACKED( struct
 {
-    int16_t range;
+    uint32_t timestamp;
+    uint16_t range;
 }) ble_dds_range_t;
 
 typedef enum

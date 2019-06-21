@@ -9,9 +9,13 @@ static ble_dds_config_t     * m_p_config;                                   ///<
 static const ble_dds_config_t m_default_config = DETECTION_CONFIG_DEFAULT;  ///< Default configuraion.
 
 bool range_read = true;
+uint32_t range_timestamp = 0;
+uint32_t presence_timestamp = 0;
 
 APP_TIMER_DEF(presence_timer_id);
 APP_TIMER_DEF(range_timer_id);
+APP_TIMER_DEF(range_timestamp_timer_id);
+APP_TIMER_DEF(presence_timestamp_timer_id);
 
 
 /**@brief Pressure sensor event handler.
@@ -64,6 +68,8 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
                 ble_dds_range_t range;
 
                 drv_range_get(&range);
+                NRF_LOG_INFO("Range Timestamp: %d \n", range_timestamp);
+                range.timestamp = range_timestamp;
                 (void)ble_dds_range_set(&m_dds, &range);
 
                 range_read = true;
@@ -88,26 +94,42 @@ static void presence_timeout_handler(void * p_context)
 {
     uint32_t err_code;
 
+    // if(m_p_config->sample_mode == SAMPLE_MODE_MOTION)
+    // {
+    //     ble_dds_presence_t presence;
+
+    //     drv_presence_get(&presence);
+    //     (void)ble_dds_presence_set(&m_dds, &presence);
+
+    //     // Start range timer that will repeatedly attempt to 
+    //     // start another ranging when the last finishes
+    //     app_timer_start(range_timer_id,
+    //                         APP_TIMER_TICKS(1),
+    //                         NULL);
+
+    // }
+    // else if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)
+    // {
+    //     ble_dds_presence_t presence;
+
+    //     drv_presence_get(&presence);
+    //     (void)ble_dds_presence_set(&m_dds, &presence);
+    // }
+
+    ble_dds_presence_t presence;
+
+    drv_presence_get(&presence);
+    NRF_LOG_INFO("Presence Timestamp: %d \n", presence_timestamp);
+    presence.timestamp = presence_timestamp;
+    (void)ble_dds_presence_set(&m_dds, &presence);
+
     if(m_p_config->sample_mode == SAMPLE_MODE_MOTION)
     {
-        ble_dds_presence_t presence;
-
-        drv_presence_get(&presence);
-        (void)ble_dds_presence_set(&m_dds, &presence);
-
         // Start range timer that will repeatedly attempt to 
         // start another ranging when the last finishes
         app_timer_start(range_timer_id,
                             APP_TIMER_TICKS(1),
                             NULL);
-
-    }
-    else if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)
-    {
-        ble_dds_presence_t presence;
-
-        drv_presence_get(&presence);
-        (void)ble_dds_presence_set(&m_dds, &presence);
     }
 }
 
@@ -135,6 +157,34 @@ static void range_timeout_handler(void * p_context)
     }
 }
 
+static void range_timestamp_timeout_handler(void * p_context)
+{
+    if (range_timestamp > 4294967290)
+    {
+        range_timestamp = 0;
+    }
+    range_timestamp++;
+}
+
+static void reset_range_timestamp(void)
+{
+    range_timestamp = 0;
+}
+
+static void presence_timestamp_timeout_handler(void * p_context)
+{
+    if (presence_timestamp > 4294967290)
+    {
+        presence_timestamp = 0;
+    }
+    presence_timestamp++;
+}
+
+static void reset_presence_timestamp(void)
+{
+    presence_timestamp = 0;
+}
+
 /**@brief Function for stopping pressure sampling.
  */
 static uint32_t presence_stop(void)
@@ -142,6 +192,9 @@ static uint32_t presence_stop(void)
     uint32_t err_code;
 
     err_code = app_timer_stop(presence_timer_id);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = app_timer_stop(presence_timestamp_timer_id);
     APP_ERROR_CHECK(err_code);
 
     return drv_presence_disable();
@@ -154,6 +207,9 @@ static uint32_t range_stop(void)
     uint32_t err_code;
 
     err_code = app_timer_stop(range_timer_id);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = app_timer_stop(range_timestamp_timer_id);
     APP_ERROR_CHECK(err_code);
 
     return drv_range_disable();
@@ -178,6 +234,14 @@ static uint32_t presence_start(void)
     err_code = drv_presence_enable(m_p_config);
     APP_ERROR_CHECK(err_code);
 
+    // Start the timestamp timer
+    app_timer_start(presence_timestamp_timer_id,
+                        APP_TIMER_TICKS(1),
+                        NULL);
+
+    // Reset the timestamp counter
+    reset_presence_timestamp();
+
     if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)
     {     
         return app_timer_start(presence_timer_id,
@@ -198,6 +262,14 @@ static uint32_t range_start(void)
 
     err_code = drv_range_enable();
     APP_ERROR_CHECK(err_code);
+
+    // Start the timestamp timer
+    app_timer_start(range_timestamp_timer_id,
+                        APP_TIMER_TICKS(1),
+                        NULL);
+
+    // Reset the timestamp counter
+    reset_range_timestamp();
 
     if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)
     {
@@ -474,6 +546,14 @@ uint32_t m_detection_init(m_ble_service_handle_t * p_handle, m_detection_init_t 
 
     /**@brief Init application timers */
     err_code = app_timer_create(&range_timer_id, APP_TIMER_MODE_REPEATED, range_timeout_handler);
+    APP_ERROR_CHECK(err_code);
+
+    /**@brief Init application timers */
+    err_code = app_timer_create(&presence_timestamp_timer_id, APP_TIMER_MODE_REPEATED, presence_timestamp_timeout_handler);
+    APP_ERROR_CHECK(err_code);
+
+    /**@brief Init application timers */
+    err_code = app_timer_create(&range_timestamp_timer_id, APP_TIMER_MODE_REPEATED, range_timestamp_timeout_handler);
     APP_ERROR_CHECK(err_code);
 
 
