@@ -11,6 +11,8 @@ static const ble_dds_config_t m_default_config = DETECTION_CONFIG_DEFAULT;  ///<
 bool range_read = true;
 uint32_t range_timestamp = 0;
 uint32_t presence_timestamp = 0;
+uint8_t range_start_flag = 0;
+uint8_t presence_start_flag = 0;
 
 APP_TIMER_DEF(presence_timer_id);
 APP_TIMER_DEF(range_timer_id);
@@ -40,6 +42,10 @@ static void drv_presence_evt_handler(drv_presence_evt_t const * p_event)
 
         case DRV_PRESENCE_EVT_MOTION_STOP:
         {
+            // reset start flag
+            range_start_flag = 0;
+            presence_start_flag = 0;
+
             err_code = app_timer_stop(presence_timer_id);
             APP_ERROR_CHECK(err_code);
         }
@@ -67,6 +73,17 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
             {
                 ble_dds_range_t range;
 
+                // If this is the first sampling of the session, mark it
+                if(!range_start_flag)
+                {
+                    range_start_flag = 1;
+                    range.marker = 1;
+                }
+                else
+                {
+                    range.marker = 0;
+                }
+                
                 drv_range_get(&range);
                 NRF_LOG_INFO("Range Timestamp: %d \n", range_timestamp);
                 range.timestamp = range_timestamp;
@@ -117,6 +134,17 @@ static void presence_timeout_handler(void * p_context)
     // }
 
     ble_dds_presence_t presence;
+
+    // If this is the first sampling of the session, mark it
+    if(!presence_start_flag)
+    {
+        presence_start_flag = 1;
+        presence.marker = 1;
+    }
+    else
+    {
+        presence.marker = 0;
+    }
 
     drv_presence_get(&presence);
     NRF_LOG_INFO("Presence Timestamp: %d \n", presence_timestamp);
@@ -191,6 +219,9 @@ static uint32_t presence_stop(void)
 {
     uint32_t err_code;
 
+    // reset start flag
+    presence_start_flag = 0;
+
     err_code = app_timer_stop(presence_timer_id);
     APP_ERROR_CHECK(err_code);
 
@@ -205,6 +236,9 @@ static uint32_t presence_stop(void)
 static uint32_t range_stop(void)
 {
     uint32_t err_code;
+
+    // reset start flag
+    range_start_flag = 0;
 
     err_code = app_timer_stop(range_timer_id);
     APP_ERROR_CHECK(err_code);

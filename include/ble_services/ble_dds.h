@@ -22,6 +22,7 @@
 typedef PACKED( struct
 {
     uint32_t timestamp;
+    uint8_t marker;
     int16_t ir1;
     int16_t ir2;
     int16_t ir3;
@@ -31,6 +32,7 @@ typedef PACKED( struct
 typedef PACKED( struct
 {
     uint32_t timestamp;
+    uint8_t marker;
     uint16_t range;
 }) ble_dds_range_t;
 
