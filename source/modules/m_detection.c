@@ -13,6 +13,7 @@ uint32_t range_timestamp = 0;
 uint32_t presence_timestamp = 0;
 uint8_t range_start_flag = 0;
 uint8_t presence_start_flag = 0;
+uint8_t presence_stop_flag = 0;
 
 APP_TIMER_DEF(presence_timer_id);
 APP_TIMER_DEF(range_timer_id);
@@ -32,6 +33,8 @@ static void drv_presence_evt_handler(drv_presence_evt_t const * p_event)
         {
             if(p_event->mode == SAMPLE_MODE_MOTION)
             {
+                presence_stop_flag = 0;
+
                 //Start Timer to drive ak sampling when motion is detect_ble_evt_disconnected
                 app_timer_start(presence_timer_id,
                         APP_TIMER_TICKS(m_p_config->presence_interval_ms),
@@ -42,6 +45,8 @@ static void drv_presence_evt_handler(drv_presence_evt_t const * p_event)
 
         case DRV_PRESENCE_EVT_MOTION_STOP:
         {
+            presence_stop_flag = 1;
+
             // reset start flag
             range_start_flag = 0;
             presence_start_flag = 0;
@@ -73,21 +78,26 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
             {
                 ble_dds_range_t range;
 
-                // If this is the first sampling of the session, mark it
-                if(!range_start_flag)
-                {
-                    range_start_flag = 1;
-                    range.marker = 1;
-                }
-                else
-                {
-                    range.marker = 0;
-                }
-                
+                // Always need to read register in order to range again
                 drv_range_get(&range);
-                NRF_LOG_INFO("Range Timestamp: %d \n", range_timestamp);
-                range.timestamp = range_timestamp;
-                (void)ble_dds_range_set(&m_dds, &range);
+
+                if (!presence_stop_flag)
+                {
+                    // If this is the first sampling of the session, mark it
+                    if(!range_start_flag)
+                    {
+                        range_start_flag = 1;
+                        range.marker = 1;
+                    }
+                    else
+                    {
+                        range.marker = 0;
+                    }
+                    
+                    NRF_LOG_INFO("Range Timestamp: %d \n", range_timestamp);
+                    range.timestamp = range_timestamp;
+                    (void)ble_dds_range_set(&m_dds, &range);
+                }
 
                 range_read = true;
             }
