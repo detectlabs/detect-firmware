@@ -15,13 +15,13 @@
     #define PACKED(TYPE) TYPE __attribute__ ((packed))
 #endif
 
+// EE84xxxx-43B7-4F65-9FB9-D7B92D683E36
+#define DCS_BASE_UUID                  {{0x36, 0x3E, 0x68, 0x2D, 0xB9, 0xD7, 0xB9, 0x9F, 0x65, 0x4F, 0xB7, 0x43, 0x00, 0x00, 0x84, 0xEE}}
+
 #define BLE_UUID_DCS_DEVICE_NAME_CHAR   0x0101                      /**< The UUID of the device name Characteristic. */
 #define BLE_UUID_DCS_ADV_PARAMS_CHAR    0x0102                      /**< The UUID of the advertising parameters Characteristic. */
 #define BLE_UUID_DCS_CONN_PARAM_CHAR    0x0103                      /**< The UUID of the connection parameters Characteristic. */
 #define BLE_UUID_DCS_FW_VERSION_CHAR    0x0104                      /**< The UUID of the FW version Characteristic. */
-
-// EE84xxxx-43B7-4F65-9FB9-D7B92D683E36
-#define DCS_BASE_UUID                  {{0x36, 0x3E, 0x68, 0x2D, 0xB9, 0xD7, 0xB9, 0x9F, 0x65, 0x4F, 0xB7, 0x43, 0x00, 0x00, 0x84, 0xEE}}
 
 #define BLE_TCS_DEVICE_NAME_LEN_MAX 10
 

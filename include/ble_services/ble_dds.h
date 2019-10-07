@@ -7,9 +7,18 @@
 
 #include "app_util_platform.h"
 
-#define BLE_UUID_DDS_SERVICE 0x0200                      /**< The UUID of the Thingy Environment Service. */
-#define BLE_DDS_MAX_DATA_LEN (BLE_GATT_ATT_MTU_DEFAULT - 3) /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Thingy Environment service module. */
+// EE84xxxx-43B7-4F65-9FB9-D7B92D683E36
+#define DDS_BASE_UUID                  {{0x36, 0x3E, 0x68, 0x2D, 0xB9, 0xD7, 0xB9, 0x9F, 0x65, 0x4F, 0xB7, 0x43, 0x00, 0x00, 0x84, 0xEE}}
 
+#define BLE_UUID_DDS_SERVICE            0x0200                      /**< The UUID of the Thingy Environment Service. */
+#define BLE_UUID_DDS_PRESENCE_CHAR      0x0201                      /**< The UUID of the temperature Characteristic. */
+#define BLE_UUID_DDS_RANGE_CHAR         0x0202                      /**< The UUID of the pressure Characteristic. */
+#define BLE_UUID_DDS_CONFIG_CHAR        0x0203                      /**< The UUID of the config Characteristic. */
+
+#define BLE_DDS_MAX_RX_CHAR_LEN        BLE_DDS_MAX_DATA_LEN        /**< Maximum length of the RX Characteristic (in bytes). */
+#define BLE_DDS_MAX_TX_CHAR_LEN        BLE_DDS_MAX_DATA_LEN        /**< Maximum length of the TX Characteristic (in bytes). */
+
+#define BLE_DDS_MAX_DATA_LEN (BLE_GATT_ATT_MTU_DEFAULT - 3) /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Thingy Environment service module. */
 
 #ifdef __GNUC__
     #ifdef PACKED

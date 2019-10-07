@@ -3,17 +3,6 @@
 #include "sdk_common.h"
 #include "nrf_log.h"
 
-#define BLE_UUID_DDS_PRESENCE_CHAR      0x0201                      /**< The UUID of the temperature Characteristic. */
-#define BLE_UUID_DDS_RANGE_CHAR         0x0202                      /**< The UUID of the pressure Characteristic. */
-#define BLE_UUID_DDS_CONFIG_CHAR        0x0203                      /**< The UUID of the config Characteristic. */
-
-
-#define BLE_DDS_MAX_RX_CHAR_LEN        BLE_DDS_MAX_DATA_LEN        /**< Maximum length of the RX Characteristic (in bytes). */
-#define BLE_DDS_MAX_TX_CHAR_LEN        BLE_DDS_MAX_DATA_LEN        /**< Maximum length of the TX Characteristic (in bytes). */
-
-// EE84xxxx-43B7-4F65-9FB9-D7B92D683E36
-#define DDS_BASE_UUID                  {{0x36, 0x3E, 0x68, 0x2D, 0xB9, 0xD7, 0xB9, 0x9F, 0x65, 0x4F, 0xB7, 0x43, 0x00, 0x00, 0x84, 0xEE}}
-
 /**@brief Function for handling the @ref BLE_GAP_EVT_CONNECTED event from the S132 SoftDevice.
  *
  * @param[in] p_tes     Thingy Environment Service structure.

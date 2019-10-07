@@ -69,7 +69,6 @@ static void drv_presence_evt_handler(drv_presence_evt_t const * p_event)
  */
 static void drv_range_evt_handler(drv_range_evt_t const * p_event)
 {
-    uint32_t err_code;
     //NRF_LOG_INFO("******************RANGE *******************************HERE \r\n");
     switch (p_event->type)
     {
@@ -119,8 +118,6 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
  */
 static void presence_timeout_handler(void * p_context)
 {
-    uint32_t err_code;
-
     // if(m_p_config->sample_mode == SAMPLE_MODE_MOTION)
     // {
     //     ble_dds_presence_t presence;
