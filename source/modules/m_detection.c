@@ -118,28 +118,6 @@ static void drv_range_evt_handler(drv_range_evt_t const * p_event)
  */
 static void presence_timeout_handler(void * p_context)
 {
-    // if(m_p_config->sample_mode == SAMPLE_MODE_MOTION)
-    // {
-    //     ble_dds_presence_t presence;
-
-    //     drv_presence_get(&presence);
-    //     (void)ble_dds_presence_set(&m_dds, &presence);
-
-    //     // Start range timer that will repeatedly attempt to 
-    //     // start another ranging when the last finishes
-    //     app_timer_start(range_timer_id,
-    //                         APP_TIMER_TICKS(1),
-    //                         NULL);
-
-    // }
-    // else if(m_p_config->sample_mode == SAMPLE_MODE_CONTINUOUS)
-    // {
-    //     ble_dds_presence_t presence;
-
-    //     drv_presence_get(&presence);
-    //     (void)ble_dds_presence_set(&m_dds, &presence);
-    // }
-
     ble_dds_presence_t presence;
 
     // If this is the first sampling of the session, mark it
@@ -470,8 +448,7 @@ static void ble_dds_evt_handler( ble_dds_t        * p_dds,
     }
 }
 
-/**@brief Function for initializing the Thingy Environment Service.
- *
+/**@brief Function for initializing the Detect Service.
  * @details This callback function will be called from the ble handling module to initialize the Thingy Environment service.
  *
  * @retval NRF_SUCCESS If initialization was successful.
