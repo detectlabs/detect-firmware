@@ -44,10 +44,7 @@ static ble_advertising_t * p_m_advertising;
 static uint16_t * p_m_conn_handle;
 
 // YOUR_JOB: Use UUIDs for service(s) used in your application.
-static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE,  BLE_UUID_TYPE_BLE},
-                                    {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
-                                    {BLE_UUID_DCS_SERVICE,                BLE_UUID_TYPE_BLE},
-                                    {BLE_UUID_DDS_SERVICE,                BLE_UUID_TYPE_BLE}};
+static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DCS_SERVICE, BLE_UUID_TYPE_VENDOR_BEGIN}};
 
 /**@brief Function for handling the YYY Service events.
  * YOUR_JOB implement a service handler function depending on the event the service you are using can generate
