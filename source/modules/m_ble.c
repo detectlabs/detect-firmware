@@ -11,7 +11,7 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                      /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define MANUFACTURER_NAME               "Detect Labs"                       /**< Manufacturer. Will be passed to Device Information Service. */
+#define MANUFACTURER_NAME               "Detect Labs"                               /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                300                                         /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 #define APP_ADV_DURATION                18000                                       /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
 
@@ -816,7 +816,7 @@ uint32_t m_ble_init(m_ble_init_t * p_params, uint16_t * _m_conn_handle, ble_adve
     gatt_init();
 
     services_init(m_service_handles, m_service_num);
-    
+
     advertising_init();
 
     conn_params_init();
