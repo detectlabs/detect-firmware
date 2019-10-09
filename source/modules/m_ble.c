@@ -814,9 +814,11 @@ uint32_t m_ble_init(m_ble_init_t * p_params, uint16_t * _m_conn_handle, ble_adve
     }
     
     gatt_init();
-    advertising_init();
 
     services_init(m_service_handles, m_service_num);
+    
+    advertising_init();
+
     conn_params_init();
 
     return NRF_SUCCESS;
