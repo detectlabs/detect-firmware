@@ -11,7 +11,7 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                      /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define MANUFACTURER_NAME               "Detect Labs"                       /**< Manufacturer. Will be passed to Device Information Service. */
+#define MANUFACTURER_NAME               "Detect Labs"                               /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                300                                         /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 #define APP_ADV_DURATION                18000                                       /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
 
@@ -44,10 +44,7 @@ static ble_advertising_t * p_m_advertising;
 static uint16_t * p_m_conn_handle;
 
 // YOUR_JOB: Use UUIDs for service(s) used in your application.
-static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE,  BLE_UUID_TYPE_BLE},
-                                    {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
-                                    {BLE_UUID_DCS_SERVICE,                BLE_UUID_TYPE_BLE},
-                                    {BLE_UUID_DDS_SERVICE,                BLE_UUID_TYPE_BLE}};
+static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DCS_SERVICE, BLE_UUID_TYPE_VENDOR_BEGIN}};
 
 /**@brief Function for handling the YYY Service events.
  * YOUR_JOB implement a service handler function depending on the event the service you are using can generate
@@ -569,14 +566,12 @@ static uint32_t services_init(m_ble_service_handle_t * p_service_handles, uint32
     //err_code = ble_dfu_buttonless_async_svci_init();
     //APP_ERROR_CHECK(err_code);
 
-    dfus_init.evt_handler = ble_dfu_evt_handler;
-
-    err_code = ble_dfu_buttonless_init(&dfus_init);
-    APP_ERROR_CHECK(err_code);
-
-    NRF_LOG_INFO("Added dfu service");
-
-    //THIS IS WHERE WE WILL ITERATE THROUGH AND INIT ALL OTHER SERVICES
+    /* *****VERY IMPORTANT****** 
+    / If we want to advertise a full 128bit custom uuid
+    / in the advertising packet, we must init that service
+    / before any other vendor services.
+    / https://devzone.nordicsemi.com/f/nordic-q-a/53123/custom-128bit-uuid-is-advertised-incorrectly
+    */
 
     dcs_init.p_init_vals = m_ble_config;
 
@@ -586,7 +581,7 @@ static uint32_t services_init(m_ble_service_handle_t * p_service_handles, uint32
     APP_ERROR_CHECK(err_code);
     NRF_LOG_INFO("ble_dcs_init:  %d.",err_code);
 
-
+    //THIS IS WHERE WE WILL ITERATE THROUGH AND INIT ALL OTHER SERVICE
     for (uint32_t i = 0; i < num_services; i++)
     {
         if (p_service_handles[i].init_cb != NULL)
@@ -599,6 +594,13 @@ static uint32_t services_init(m_ble_service_handle_t * p_service_handles, uint32
         }
     }
 
+    dfus_init.evt_handler = ble_dfu_evt_handler;
+
+    err_code = ble_dfu_buttonless_init(&dfus_init);
+    APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Added dfu service")
+    
     return NRF_SUCCESS;
 
     /* YOUR_JOB: Add code to initialize the services used by the application.
@@ -817,9 +819,11 @@ uint32_t m_ble_init(m_ble_init_t * p_params, uint16_t * _m_conn_handle, ble_adve
     }
     
     gatt_init();
-    advertising_init();
 
     services_init(m_service_handles, m_service_num);
+
+    advertising_init();
+
     conn_params_init();
 
     return NRF_SUCCESS;
