@@ -566,14 +566,12 @@ static uint32_t services_init(m_ble_service_handle_t * p_service_handles, uint32
     //err_code = ble_dfu_buttonless_async_svci_init();
     //APP_ERROR_CHECK(err_code);
 
-    dfus_init.evt_handler = ble_dfu_evt_handler;
-
-    err_code = ble_dfu_buttonless_init(&dfus_init);
-    APP_ERROR_CHECK(err_code);
-
-    NRF_LOG_INFO("Added dfu service");
-
-    //THIS IS WHERE WE WILL ITERATE THROUGH AND INIT ALL OTHER SERVICES
+    /* *****VERY IMPORTANT****** 
+    / If we want to advertise a full 128bit custom uuid
+    / in the advertising packet, we must init that service
+    / before any other vendor services.
+    / https://devzone.nordicsemi.com/f/nordic-q-a/53123/custom-128bit-uuid-is-advertised-incorrectly
+    */
 
     dcs_init.p_init_vals = m_ble_config;
 
@@ -583,7 +581,7 @@ static uint32_t services_init(m_ble_service_handle_t * p_service_handles, uint32
     APP_ERROR_CHECK(err_code);
     NRF_LOG_INFO("ble_dcs_init:  %d.",err_code);
 
-
+    //THIS IS WHERE WE WILL ITERATE THROUGH AND INIT ALL OTHER SERVICE
     for (uint32_t i = 0; i < num_services; i++)
     {
         if (p_service_handles[i].init_cb != NULL)
@@ -596,6 +594,13 @@ static uint32_t services_init(m_ble_service_handle_t * p_service_handles, uint32
         }
     }
 
+    dfus_init.evt_handler = ble_dfu_evt_handler;
+
+    err_code = ble_dfu_buttonless_init(&dfus_init);
+    APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Added dfu service")
+    
     return NRF_SUCCESS;
 
     /* YOUR_JOB: Add code to initialize the services used by the application.
