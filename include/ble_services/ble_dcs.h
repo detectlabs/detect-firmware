@@ -56,7 +56,7 @@
 #define MIN_CONN_INTERVAL_MS            7.5                                         /**< Minimum acceptable connection interval in ms. */
 #define MAX_CONN_INTERVAL_MS            30                                          /**< Maximum acceptable connection interval in ms. */
 #define SLAVE_LATENCY                   0                                           /**< Slave latency. */
-#define CONN_SUP_TIMEOUT_MS             3200                                        /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
+#define CONN_SUP_TIMEOUT_MS             10000                                        /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
 
 /**@brief Detect FW version.
 * 0xFF indicates a custom build from source. 
