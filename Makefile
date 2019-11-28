@@ -99,6 +99,26 @@ SRC_FILES += \
   $(PROJ_DIR)/source/drivers/drv_ak9750.c \
   $(PROJ_DIR)/source/util/twi_manager.c \
 
+# tensorflow srcs
+SRC_FILES += \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/micro_error_reporter.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/micro_error_reporter_connector.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/micro_mutable_op_resolver.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/simple_tensor_allocator.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/debug_log.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/debug_log_numbers.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/micro_interpreter.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/kernels/depthwise_conv.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/kernels/softmax.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/kernels/all_ops_resolver.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/experimental/micro/kernels/fully_connected.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/c/c_api_internal.c \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/core/api/error_reporter.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/core/api/flatbuffer_conversions.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/core/api/op_resolver.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/kernels/kernel_util.cc \
+  $(PROJ_DIR)/tensorflow/tensorflow/lite/kernels/internal/quantization_util.cc \
+
 # Include folders common to all targets
 INC_FOLDERS += \
   $(SDK_ROOT)/components \
@@ -153,6 +173,12 @@ INC_FOLDERS += \
   $(PROJ_DIR)/include/ble_services \
   $(PROJ_DIR)/include/util \
 
+# tensorflow includes
+INC_FOLDERS += \
+  $(PROJ_DIR)/tensorflow \
+  $(PROJ_DIR)/tensorflow/third_party/gemmlowp \
+  $(PROJ_DIR)/tensorflow/third_party/flatbuffers/include \
+
 # Libraries common to all targets
 LIB_FILES += \
 
@@ -184,6 +210,9 @@ CFLAGS += -fno-builtin -fshort-enums
 
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)
+
+# tensorflow C++ flags
+CXXFLAGS += -DNDEBUG -std=c++11 -g -DTF_LITE_STATIC_MEMORY -fpermissive
 
 # Assembler flags common to all targets
 ASMFLAGS += -g3
@@ -219,7 +248,7 @@ nrf52840_xxaa: ASMFLAGS += -D__STACK_SIZE=8192
 
 # Add standard libraries at the very end of the linker input, after all objects
 # that may need symbols provided by these libraries.
-LIB_FILES += -lc -lnosys -lm
+LIB_FILES += -lc -lnosys -lm -lstdc++
 
 
 .PHONY: default help

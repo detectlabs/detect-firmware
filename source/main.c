@@ -93,6 +93,8 @@
 #include "app_scheduler.h"
 #include "m_batt_meas.h"
 
+#include "tensorflow/lite/experimental/micro/micro_error_reporter_connector.h"
+
 #define DETECT_SERVICES_MAX             5
 
 #define DETECT_SERVICE_DETECTION        0
@@ -391,6 +393,21 @@ int main(void)
     detect_init();
 
     NRF_LOG_INFO("Detect firmware started.");
+
+    // tflite::MicroErrorReporter micro_error_reporter;
+    // tflite::ErrorReporter* error_reporter = &micro_error_reporter;
+    // error_reporter->Report("Number: %d", 42);
+    // error_reporter->Report("Badly-formed format string %");
+    // error_reporter->Report("Another % badly-formed %% format string");
+    // error_reporter->Report("~~~%s~~~", "ALL TESTS PASSED");
+
+
+    MicroErrorReporter_Report();
+    // MicroErrorReporter_Report("Badly-formed format string %");
+    // MicroErrorReporter_Report("Another % badly-formed %% format string");
+    // MicroErrorReporter_Report("~~~%s~~~", "ALL TESTS PASSED");
+    
+
 
     // Start execution.
     //application_timers_start();

@@ -272,7 +272,7 @@ endef
 	$(call run,$(CC) -std=c99,$(CFLAGS),Compiling)
 
 # Create object files from C++ source files
-%.cpp.o:
+%.cc.o:
 	$(call run,$(CXX),$(CFLAGS) $(CXXFLAGS),Compiling)
 
 # Create object files from assembly source files
